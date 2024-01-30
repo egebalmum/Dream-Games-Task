@@ -132,6 +132,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 8400033240464874336}
   boxCollider: {fileID: 861072346091355378}
+  fallable: 1
+  touchable: 1
+  matchable: 0
+  falling: 0
+  pos: {x: 0, y: 0}
 --- !u!61 &861072346091355378
 BoxCollider2D:
   m_ObjectHideFlags: 0

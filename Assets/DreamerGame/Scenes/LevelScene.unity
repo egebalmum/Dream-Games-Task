@@ -1295,6 +1295,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58516a7b3357e6b4ab0e008022215cf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  size: {x: 10, y: 10}
   borderPadding: 0.33
   cellParent: {fileID: 1172296120}
   itemParent: {fileID: 1732501056}
@@ -1307,9 +1308,9 @@ MonoBehaviour:
   - {fileID: 5194767123685943794, guid: e60eb4dee4421f248b8244e47c6387b1, type: 3}
   - {fileID: 5194767123685943794, guid: 41c13f015f0664c438ebb1a7c14b76b1, type: 3}
   - {fileID: 5194767123685943794, guid: b1a2ec5d8cbbd8147a686f10ee886d76, type: 3}
+  - {fileID: 5194767123685943794, guid: 8137e9ba4855f4745bdc5ed2cd2d434e, type: 3}
   cells: []
   items: []
-  size: {x: 10, y: 10}
 --- !u!212 &1914505923
 SpriteRenderer:
   m_ObjectHideFlags: 0

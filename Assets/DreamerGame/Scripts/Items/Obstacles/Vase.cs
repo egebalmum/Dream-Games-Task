@@ -4,5 +4,8 @@ using UnityEngine;
 
 public class Vase : Item
 {
-    
+    public override void TouchBehaviour()
+    {
+        throw new System.NotImplementedException();
+    }
 }

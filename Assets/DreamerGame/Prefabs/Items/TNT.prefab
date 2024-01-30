@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: bdb4b21437b6d9144ad051c53e4a1ff4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3da41cef0af819743816023090662090, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -93,10 +93,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 447124987902721068}
-  - component: {fileID: 5651657616932993710}
+  - component: {fileID: -2403681336633597435}
   - component: {fileID: 861072346091355378}
   m_Layer: 0
-  m_Name: RedCube
+  m_Name: TNT
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -118,7 +118,7 @@ Transform:
   - {fileID: 5598965420390787146}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5651657616932993710
+--- !u!114 &-2403681336633597435
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,7 +127,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5194767123685943794}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 891d194868dc8a14cb50812c87de4ced, type: 3}
+  m_Script: {fileID: 11500000, guid: 56f0202ee3067ba45a75245b2fc22371, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 8400033240464874336}

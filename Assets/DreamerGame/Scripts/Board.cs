@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
@@ -6,6 +7,10 @@ using Random = UnityEngine.Random;
 
 public class Board : MonoBehaviour
 {
+
+    public static Board Instance;
+    
+    [SerializeField] public Vector2Int size; //Going to pull value from json
     [SerializeField] public float borderPadding;
     [SerializeField] public GameObject cellParent;
     [SerializeField] public GameObject itemParent;
@@ -18,10 +23,22 @@ public class Board : MonoBehaviour
     [HideInInspector] public Cell[] cells;
     [HideInInspector] public Item[] items;
     
-    [SerializeField] private Vector2Int size; //Going to pull value from json
+    
     private Vector2 _cellSize;
     private float _shadedFaceLength;
     private SpriteRenderer _borderSprite;
+
+
+    public void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
     public void Start()
     {
         _borderSprite = GetComponent<SpriteRenderer>();
@@ -37,6 +54,41 @@ public class Board : MonoBehaviour
         InitiateItems();
     }
 
+    public void TouchItem(Item item)
+    {
+        if (item.falling)
+        {
+            return;
+        }
+        item.TouchBehaviour();
+        FallItems();
+    }
+
+    public void DestroyItem(Item item)
+    {
+        items[item.pos.y * size.x + item.pos.x] = null;
+        Destroy(item.gameObject);
+    }
+
+    public void FallItems()
+    {
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = size.y-2; y >= 0; y--)
+            {
+                Item item = items[y * size.x + x];
+                if (item != null && item.fallable)
+                {
+                    Item bottomItem = items[(y + 1) * size.x + x];
+                    if (bottomItem == null)
+                    {
+                        item.Fall();
+                    }
+                }
+            }
+        }
+    }
+    
     private void AdjustBorder()
     {
         float desiredRatio = boardBorderRect.rect.width / boardBorderRect.rect.height;
@@ -91,7 +143,10 @@ public class Board : MonoBehaviour
         {
             for (int y = 0; y < size.y; y++)
             {
-                items[size.x*y + x] = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], cells[size.x*y + x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
+                Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], cells[size.x*y + x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
+                item.pos = new Vector2Int(x, y);
+                items[size.x * y + x] = item;
+                
             }
         }
     }
