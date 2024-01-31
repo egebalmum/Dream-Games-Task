@@ -9,20 +9,18 @@ public class Board : MonoBehaviour
 {
 
     public static Board Instance;
-    
     [SerializeField] public Vector2Int size; //Going to pull value from json
     [SerializeField] public float borderPadding;
-    [SerializeField] public GameObject cellParent;
-    [SerializeField] public GameObject itemParent;
-    [SerializeField] public GameObject cellPrefab;
-    [SerializeField] public Camera activeCamera;
+    [SerializeField] private GameObject cellParent;
+    [SerializeField] private GameObject itemParent;
+    [SerializeField] private GameObject cellPrefab;
+    [SerializeField] private Camera activeCamera;
     [SerializeField] private GameObject defaultItemPrefab;
     [SerializeField] private RectTransform boardBorderRect;
     [SerializeField] private GameObject[] testItemPrefabs;
     
     [HideInInspector] public Cell[] cells;
     [HideInInspector] public Item[] items;
-    
     
     private Vector2 _cellSize;
     private float _shadedFaceLength;
@@ -48,7 +46,6 @@ public class Board : MonoBehaviour
         item.TouchBehaviour();
         FallItems();
     }
-
     public void FallItems()
     {
         for (int x = 0; x < size.x; x++)
@@ -67,6 +64,22 @@ public class Board : MonoBehaviour
             }
         }
     }
+    public void FallItemsInColumn(int x)
+    {
+        for (int y = size.y - 2; y >= 0; y--)
+        {
+            Item item = items[y * size.x + x];
+            if (item != null && item.fallable && !item.falling)
+            {
+                Item bottomItem = items[(y + 1) * size.x + x];
+                if (bottomItem == null || bottomItem.falling)
+                {
+                    item.Fall();
+                }
+            }
+        }
+    }
+    
     private void InitializeLevel()
     {
         AdjustBorder();
@@ -147,9 +160,7 @@ public class Board : MonoBehaviour
             for (int y = 0; y < size.y; y++)
             {
                 Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], cells[size.x*y + x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
-                item.pos = new Vector2Int(x, y);
-                items[size.x * y + x] = item;
-                
+                item.InitializeItem(new Vector2Int(x,y));
             }
         }
     }

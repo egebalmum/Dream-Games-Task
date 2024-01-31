@@ -13,7 +13,8 @@ public abstract class Item : MonoBehaviour
    public bool matchable;
    public bool falling;
    public Vector2Int pos;
-
+   public Vector2Int reservedCell;
+   
    private void OnMouseDown()
    {
       if (!touchable)
@@ -23,30 +24,104 @@ public abstract class Item : MonoBehaviour
       }
       Board.Instance.TouchItem(this);
    }
-
+   
+   public void InitializeItem(Vector2Int posInBoard)
+   {
+      pos = posInBoard;
+      Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = this;
+      reservedCell = new Vector2Int(-1, -1);
+   }
+   
    public void Fall()
-   {
-      int destinationY = GetDestinationY();
-      falling = true;
-      Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
-      Board.Instance.items[destinationY * Board.Instance.size.x + pos.x] = this;
-      pos.y = destinationY;
-      transform.DOMoveY(Board.Instance.cells[pos.y * Board.Instance.size.x + pos.x].transform.position.y, 0.25f).OnComplete(() =>falling=false);
-   }
+    {
+        int destinationY = GetBottomY();
+        if (destinationY == -1)
+        {
+            return;
+        }
+        falling = true;
+        StartCoroutine(FallCoroutine(destinationY));
+    }
 
-   private int GetDestinationY()
-   {
-      int destinationY = -1;
-      for (int y = pos.y + 1; y < Board.Instance.size.y; y++)
-      {
-         if (Board.Instance.items[y * Board.Instance.size.x + pos.x] == null)
-         {
-            destinationY = y;
-            continue;
-         }
-         break;
-      }
-      return destinationY;
-   }
+    IEnumerator FallCoroutine(int destinationY)
+    {
+        ReserveCell(pos.x, destinationY);
+        float speed = 0;
+
+        while (true)
+        {
+            int destinationIndex = CalculateIndex(destinationY, pos.x);
+            int currentIndex = CalculateIndex(pos.y, pos.x);
+
+            if (IsReachedDestination(destinationIndex))
+            {
+                UpdatePosition(destinationIndex, currentIndex, ref destinationY);
+                destinationY = GetBottomY();
+                if (destinationY == -1)
+                {
+                    break;
+                }
+                ReserveCell(pos.x, destinationY);
+                Board.Instance.FallItemsInColumn(pos.x);
+            }
+            speed = Mathf.Min(speed + GameManager.Instance.acceleration * Time.deltaTime, GameManager.Instance.speedLimit);
+            transform.position += -Vector3.up * (speed * Time.deltaTime);
+            yield return new WaitForEndOfFrame();
+        }
+        ReleaseReservedCell();
+        falling = false;
+        
+        bool IsReachedDestination(int destinationIndex)
+        {
+            float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
+            return distanceY <= GameManager.Instance.fallStopThreshold;
+        }
+
+        void UpdatePosition(int destinationIndex, int currentIndex, ref int destinationY)
+        {
+            if (Board.Instance.items[currentIndex] == this)
+                Board.Instance.items[currentIndex] = null;
+    
+            Board.Instance.items[destinationIndex] = this;
+            pos.y = destinationY;
+            transform.position = Board.Instance.cells[destinationIndex].transform.position;
+            Board.Instance.cells[destinationIndex].reserved = false;
+        }
+    }
+
+    private int GetBottomY()
+    {
+        int nextY = pos.y + 1;
+        if (nextY >= Board.Instance.size.y) return -1;
+    
+        int bottomIndex = CalculateIndex(nextY, pos.x);
+        Item bottomItem = Board.Instance.items[bottomIndex];
+
+        if ((bottomItem == null || bottomItem.falling) && !Board.Instance.cells[bottomIndex].reserved)
+            return nextY;
+        return -1;
+    }
+
+    public void ReleaseReservedCell()
+    {
+        if (reservedCell != new Vector2Int(-1,-1))
+        {
+            Board.Instance.cells[CalculateIndex(reservedCell.y, reservedCell.x)].reserved = false;
+            reservedCell = new Vector2Int(-1,-1);
+        }
+    }
+
+    public void ReserveCell(int x, int y)
+    {
+        ReleaseReservedCell();
+        Board.Instance.cells[CalculateIndex(y, x)].reserved = true;
+        reservedCell = new Vector2Int(x, y);
+    }
+
+    private int CalculateIndex(int y, int x)
+    {
+        return y * Board.Instance.size.x + x;
+    }
+
    public abstract void TouchBehaviour();
 }

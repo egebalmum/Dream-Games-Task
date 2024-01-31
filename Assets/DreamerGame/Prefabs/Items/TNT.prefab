@@ -137,6 +137,7 @@ MonoBehaviour:
   matchable: 0
   falling: 0
   pos: {x: 0, y: 0}
+  diameter: 3
 --- !u!61 &861072346091355378
 BoxCollider2D:
   m_ObjectHideFlags: 0
