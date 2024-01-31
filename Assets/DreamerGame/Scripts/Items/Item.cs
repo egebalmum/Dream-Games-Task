@@ -26,7 +26,7 @@ public abstract class Item : MonoBehaviour
 
    public void Fall()
    {
-      int destinationY = GetDestination();
+      int destinationY = GetDestinationY();
       falling = true;
       Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
       Board.Instance.items[destinationY * Board.Instance.size.x + pos.x] = this;
@@ -34,7 +34,7 @@ public abstract class Item : MonoBehaviour
       transform.DOMoveY(Board.Instance.cells[pos.y * Board.Instance.size.x + pos.x].transform.position.y, 0.25f).OnComplete(() =>falling=false);
    }
 
-   private int GetDestination()
+   private int GetDestinationY()
    {
       int destinationY = -1;
       for (int y = pos.y + 1; y < Board.Instance.size.y; y++)
@@ -44,10 +44,8 @@ public abstract class Item : MonoBehaviour
             destinationY = y;
             continue;
          }
-
          break;
       }
-
       return destinationY;
    }
    public abstract void TouchBehaviour();

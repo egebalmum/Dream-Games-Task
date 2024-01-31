@@ -31,29 +31,14 @@ public class Board : MonoBehaviour
 
     public void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
+        InitializeSingleton();
     }
 
     public void Start()
     {
-        _borderSprite = GetComponent<SpriteRenderer>();
-        _cellSize = defaultItemPrefab.GetComponent<Item>().boxCollider.size;
-        _shadedFaceLength = defaultItemPrefab.GetComponent<Item>().spriteRenderer.size.y - _cellSize.y;
-        InitiateLevel();
+        InitializeComponents();
+        InitializeLevel();
     }
-
-    private void InitiateLevel()
-    {
-        AdjustBorder();
-        InitiateCells();
-        InitiateItems();
-    }
-
     public void TouchItem(Item item)
     {
         if (item.falling)
@@ -64,12 +49,6 @@ public class Board : MonoBehaviour
         FallItems();
     }
 
-    public void DestroyItem(Item item)
-    {
-        items[item.pos.y * size.x + item.pos.x] = null;
-        Destroy(item.gameObject);
-    }
-
     public void FallItems()
     {
         for (int x = 0; x < size.x; x++)
@@ -77,10 +56,10 @@ public class Board : MonoBehaviour
             for (int y = size.y-2; y >= 0; y--)
             {
                 Item item = items[y * size.x + x];
-                if (item != null && item.fallable)
+                if (item != null && item.fallable && !item.falling)
                 {
                     Item bottomItem = items[(y + 1) * size.x + x];
-                    if (bottomItem == null)
+                    if (bottomItem == null || bottomItem.falling)
                     {
                         item.Fall();
                     }
@@ -88,7 +67,32 @@ public class Board : MonoBehaviour
             }
         }
     }
-    
+    private void InitializeLevel()
+    {
+        AdjustBorder();
+        InitializeCells();
+        InitializeItems();
+    }
+    private void InitializeSingleton()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+    private void InitializeComponents()
+    {
+        _borderSprite = GetComponent<SpriteRenderer>();
+        InitializeItemDimensions();
+    }
+    private void InitializeItemDimensions()
+    {
+        Item defaultItem = defaultItemPrefab.GetComponent<Item>();
+        _cellSize = defaultItem.boxCollider.size;
+        _shadedFaceLength = defaultItem.spriteRenderer.size.y - _cellSize.y;
+    }
     private void AdjustBorder()
     {
         float desiredRatio = boardBorderRect.rect.width / boardBorderRect.rect.height;
@@ -116,7 +120,7 @@ public class Board : MonoBehaviour
         adjustedPosition.y *= sizeMultiplier;
         transform.position = adjustedPosition;
     }
-    private void InitiateCells()
+    private void InitializeCells()
     {
         cells = new Cell[size.x * size.y];
         Vector2 midPoint = transform.position;
@@ -135,8 +139,7 @@ public class Board : MonoBehaviour
             addedOffset.y -= _cellSize.y;
         }
     }
-
-    private void InitiateItems()
+    private void InitializeItems()
     {
         items = new Item[size.x * size.y];
         for (int x = 0; x < size.x; x++)
