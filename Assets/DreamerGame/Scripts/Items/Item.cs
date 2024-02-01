@@ -50,8 +50,8 @@ public abstract class Item : MonoBehaviour
 
         while (true)
         {
-            int destinationIndex = CalculateIndex(destinationY, pos.x);
-            int currentIndex = CalculateIndex(pos.y, pos.x);
+            int destinationIndex = CalculateIndex(pos.x, destinationY);
+            int currentIndex = CalculateIndex(pos.x, pos.y);
 
             if (IsReachedDestination(destinationIndex))
             {
@@ -94,7 +94,7 @@ public abstract class Item : MonoBehaviour
         int nextY = pos.y + 1;
         if (nextY >= Board.Instance.size.y) return -1;
     
-        int bottomIndex = CalculateIndex(nextY, pos.x);
+        int bottomIndex = CalculateIndex(pos.x, nextY);
         Item bottomItem = Board.Instance.items[bottomIndex];
 
         if ((bottomItem == null || bottomItem.falling) && !Board.Instance.cells[bottomIndex].reserved)
@@ -106,7 +106,7 @@ public abstract class Item : MonoBehaviour
     {
         if (reservedCell != new Vector2Int(-1,-1))
         {
-            Board.Instance.cells[CalculateIndex(reservedCell.y, reservedCell.x)].reserved = false;
+            Board.Instance.cells[CalculateIndex(reservedCell.x, reservedCell.y)].reserved = false;
             reservedCell = new Vector2Int(-1,-1);
         }
     }
@@ -114,11 +114,11 @@ public abstract class Item : MonoBehaviour
     public void ReserveCell(int x, int y)
     {
         ReleaseReservedCell();
-        Board.Instance.cells[CalculateIndex(y, x)].reserved = true;
+        Board.Instance.cells[CalculateIndex(x, y)].reserved = true;
         reservedCell = new Vector2Int(x, y);
     }
 
-    private int CalculateIndex(int y, int x)
+    private int CalculateIndex(int x, int y)
     {
         return y * Board.Instance.size.x + x;
     }
