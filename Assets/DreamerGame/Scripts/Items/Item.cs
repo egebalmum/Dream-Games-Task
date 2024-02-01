@@ -14,6 +14,7 @@ public abstract class Item : MonoBehaviour
    public bool falling;
    public Vector2Int pos;
    public Vector2Int reservedCell;
+   public float speed;
    
    private void OnMouseDown()
    {
@@ -25,37 +26,68 @@ public abstract class Item : MonoBehaviour
       Board.Instance.TouchItem(this);
    }
    
-   public void InitializeItem(Vector2Int posInBoard)
+   public void InitializeItemInBoard(Vector2Int posInBoard)
    {
       pos = posInBoard;
       Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = this;
       reservedCell = new Vector2Int(-1, -1);
    }
+
+   public void InitializeItemAboveBoard(int x)
+   {
+       pos = new Vector2Int(x, -1);
+       reservedCell = new Vector2Int(-1, -1);
+   }
    
-   public void Fall()
+    public bool Fall()
     {
         int destinationY = GetBottomY();
         if (destinationY == -1)
         {
-            return;
+            return false;
         }
         falling = true;
         StartCoroutine(FallCoroutine(destinationY));
+        return true;
+    }
+
+    public void FallIntoBoard()
+    {
+        falling = true;
+        StartCoroutine(FallIntoBoardCoroutine());
     }
 
     IEnumerator FallCoroutine(int destinationY)
     {
         ReserveCell(pos.x, destinationY);
-        float speed = 0;
-
         while (true)
         {
             int destinationIndex = CalculateIndex(pos.x, destinationY);
             int currentIndex = CalculateIndex(pos.x, pos.y);
 
+            Item bottomItem = Board.Instance.items[destinationIndex];
+            if (bottomItem != null)
+            {
+                float distanceYBetween = transform.position.y - bottomItem.transform.position.y;
+                if (distanceYBetween <= Board.Instance.cellSize.y)
+                {
+                    if (GameManager.Instance.speedTransferType == 1) //slow down above object
+                    {
+                        speed = bottomItem.speed;
+                    }
+                    else if (GameManager.Instance.speedTransferType == 2) //speed up bottom object
+                    {
+                        bottomItem.speed = speed;
+                    }
+                }
+            }
             if (IsReachedDestination(destinationIndex))
             {
-                UpdatePosition(destinationIndex, currentIndex, ref destinationY);
+                if (!UpdatePosition(destinationIndex, currentIndex, destinationY))
+                {
+                    yield return new WaitWhile(() => Board.Instance.items[destinationIndex] != null);
+                    UpdatePosition(destinationIndex, currentIndex, destinationY);
+                }
                 destinationY = GetBottomY();
                 if (destinationY == -1)
                 {
@@ -70,22 +102,69 @@ public abstract class Item : MonoBehaviour
         }
         ReleaseReservedCell();
         falling = false;
-        
+        speed = 0;
         bool IsReachedDestination(int destinationIndex)
         {
             float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
             return distanceY <= GameManager.Instance.fallStopThreshold;
         }
 
-        void UpdatePosition(int destinationIndex, int currentIndex, ref int destinationY)
+        bool UpdatePosition(int destinationIndex, int currentIndex, int destinationY)
         {
-            if (Board.Instance.items[currentIndex] == this)
+            if (Board.Instance.items[destinationIndex] == null)
+            {
                 Board.Instance.items[currentIndex] = null;
-    
-            Board.Instance.items[destinationIndex] = this;
-            pos.y = destinationY;
-            transform.position = Board.Instance.cells[destinationIndex].transform.position;
-            Board.Instance.cells[destinationIndex].reserved = false;
+                Board.Instance.items[destinationIndex] = this;
+                pos.y = destinationY;
+                transform.position = Board.Instance.cells[destinationIndex].transform.position;
+                Board.Instance.cells[destinationIndex].reserved = false;
+                return true;
+            }
+            return false;
+        }
+    }
+
+    IEnumerator FallIntoBoardCoroutine()
+    {
+        while (true)
+        {
+            int destinationIndex = CalculateIndex(pos.x, 0);
+            if (IsReachedDestination(destinationIndex))
+            {
+                if (!UpdatePosition(destinationIndex, 0))
+                {
+                    yield return new WaitWhile(() => Board.Instance.items[destinationIndex] != null);
+                    UpdatePosition(destinationIndex, 0);
+                }
+                break;
+            }
+            speed = Mathf.Min(speed + GameManager.Instance.acceleration * Time.deltaTime, GameManager.Instance.speedLimit);
+            transform.position += -Vector3.up * (speed * Time.deltaTime);
+            yield return new WaitForEndOfFrame();
+        }
+
+        Board.Instance.columnQueues[pos.x].Dequeue(this);
+        if (!Fall())
+        {
+            speed = 0;
+            falling = false;
+        }
+        bool IsReachedDestination(int destinationIndex)
+        {
+            float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
+            return distanceY <= GameManager.Instance.fallStopThreshold;
+        }
+
+        bool UpdatePosition(int destinationIndex, int destinationY)
+        {
+            if (Board.Instance.items[destinationIndex] == null)
+            {
+                Board.Instance.items[destinationIndex] = this;
+                pos.y = destinationY;
+                transform.position = Board.Instance.cells[destinationIndex].transform.position;
+                return true;
+            }
+            return false;
         }
     }
 

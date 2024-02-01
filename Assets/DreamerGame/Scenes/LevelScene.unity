@@ -284,6 +284,7 @@ MonoBehaviour:
   acceleration: 50
   speedLimit: 50
   fallStopThreshold: 0.02
+  speedTransferType: 1
 --- !u!4 &405924286
 Transform:
   m_ObjectHideFlags: 0
@@ -1358,6 +1359,7 @@ MonoBehaviour:
   - {fileID: 5194767123685943794, guid: 8137e9ba4855f4745bdc5ed2cd2d434e, type: 3}
   cells: []
   items: []
+  _cellSize: {x: 0, y: 0}
 --- !u!212 &1914505923
 SpriteRenderer:
   m_ObjectHideFlags: 0

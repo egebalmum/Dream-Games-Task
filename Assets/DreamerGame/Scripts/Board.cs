@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public class Board : MonoBehaviour
@@ -21,12 +22,11 @@ public class Board : MonoBehaviour
     
     [HideInInspector] public Cell[] cells;
     [HideInInspector] public Item[] items;
-    
-    private Vector2 _cellSize;
+    [HideInInspector] public ColumnQueue[] columnQueues;
+    [HideInInspector] public Vector2 cellSize;
     private float _shadedFaceLength;
     private SpriteRenderer _borderSprite;
-
-
+    
     public void Awake()
     {
         InitializeSingleton();
@@ -45,6 +45,7 @@ public class Board : MonoBehaviour
         }
         item.TouchBehaviour();
         FallItems();
+        CreateNewItems();
     }
     public void FallItems()
     {
@@ -85,6 +86,7 @@ public class Board : MonoBehaviour
         AdjustBorder();
         InitializeCells();
         InitializeItems();
+        InitializeQueuedItemCount();
     }
     private void InitializeSingleton()
     {
@@ -103,8 +105,8 @@ public class Board : MonoBehaviour
     private void InitializeItemDimensions()
     {
         Item defaultItem = defaultItemPrefab.GetComponent<Item>();
-        _cellSize = defaultItem.boxCollider.size;
-        _shadedFaceLength = defaultItem.spriteRenderer.size.y - _cellSize.y;
+        cellSize = defaultItem.boxCollider.size;
+        _shadedFaceLength = defaultItem.spriteRenderer.size.y - cellSize.y;
     }
     private void AdjustBorder()
     {
@@ -116,16 +118,16 @@ public class Board : MonoBehaviour
         float bottom = Mathf.Abs(boardBorderRect.offsetMin.y);
         float ratioX = boardBorderRect.rect.width / (boardBorderRect.rect.width + left + right);
         float ratioY = boardBorderRect.rect.height / (boardBorderRect.rect.height + top + bottom);
-        _borderSprite.size = new Vector2(_cellSize.x * size.x + borderPadding, _cellSize.y * size.y + borderPadding + _shadedFaceLength);
+        _borderSprite.size = new Vector2(cellSize.x * size.x + borderPadding, cellSize.y * size.y + borderPadding + _shadedFaceLength);
         float currentRatio = _borderSprite.size.x / _borderSprite.size.y;
         float oldSize = activeCamera.orthographicSize;
         if (currentRatio < desiredRatio)
         {
-            activeCamera.orthographicSize = (_cellSize.y * size.y + borderPadding) / ratioY / 2;
+            activeCamera.orthographicSize = (cellSize.y * size.y + borderPadding) / ratioY / 2;
         }
         else
         {
-            activeCamera.orthographicSize = ((_cellSize.x * size.x + borderPadding) / ratioX) / (2 * activeCamera.aspect);
+            activeCamera.orthographicSize = ((cellSize.x * size.x + borderPadding) / ratioX) / (2 * activeCamera.aspect);
         }
         float sizeMultiplier = activeCamera.orthographicSize / oldSize;
         transform.position = midPoint;
@@ -137,7 +139,7 @@ public class Board : MonoBehaviour
     {
         cells = new Cell[size.x * size.y];
         Vector2 midPoint = transform.position;
-        Vector2 initialOffset = new Vector2((_cellSize.x * size.x / 2) - (_cellSize.x/2), (_cellSize.y * size.y / 2) - (_cellSize.y/2));
+        Vector2 initialOffset = new Vector2((cellSize.x * size.x / 2) - (cellSize.x/2), (cellSize.y * size.y / 2) - (cellSize.y/2));
         Vector2 addedOffset = Vector2.zero;
         for (int y = 0; y < size.y; y++)
         {
@@ -146,10 +148,10 @@ public class Board : MonoBehaviour
                 Cell cell = Instantiate(cellPrefab, midPoint + initialOffset + addedOffset,quaternion.identity, cellParent.transform).GetComponent<Cell>();
                 cell.gameObject.name = "Cell" + "[" + x + "]" + "[" + y + "]";
                 cells[size.x * y + x] = cell;
-                addedOffset.x -= _cellSize.x;
+                addedOffset.x -= cellSize.x;
             }
             addedOffset.x = 0;
-            addedOffset.y -= _cellSize.y;
+            addedOffset.y -= cellSize.y;
         }
     }
     private void InitializeItems()
@@ -160,8 +162,66 @@ public class Board : MonoBehaviour
             for (int y = 0; y < size.y; y++)
             {
                 Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], cells[size.x*y + x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
-                item.InitializeItem(new Vector2Int(x,y));
+                item.InitializeItemInBoard(new Vector2Int(x,y));
             }
         }
+    }
+
+    private void InitializeQueuedItemCount()
+    {
+        columnQueues = new ColumnQueue[size.x];
+        for (int x = 0; x < size.x; x++)
+        {
+            columnQueues[x] = new ColumnQueue(cells[x].transform.position + (Vector3.up * cellSize.y));
+        }
+    }
+
+    private void CreateNewItems()
+    {
+        List<Item> items = new List<Item>();
+        for (int x = 0; x < size.x; x++)
+        {
+            int emptyCellCount = GetEmptyCellCountInColumn(x);
+            for (int index = 0; index < emptyCellCount; index++)
+            {
+                items.Add(CreateNewItem(x));
+            }
+        }
+        FallNewItems(items);
+    }
+
+    private void FallNewItems(List<Item> items)
+    {
+        foreach (Item item in items)
+        {
+            item.FallIntoBoard();
+        }
+    }
+
+    private Item CreateNewItem(int x)
+    {
+        Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], columnQueues[x].GetNextPosition(), quaternion.identity, itemParent.transform).GetComponent<Item>();
+        item.InitializeItemAboveBoard(x);
+        columnQueues[x].Enqueue(item);
+        return item;
+    }
+
+    private int GetEmptyCellCountInColumn(int x)
+    {
+        int count = 0;
+        for (int y = 0; y < size.y; y++)
+        {
+            Item item = items[y * size.x + x];
+            if (item == null)
+            {
+                count += 1;
+            }
+            else if (!item.fallable)
+            {
+                break;
+            }
+        }
+        count -= columnQueues[x].Count();
+        return count;
     }
 }
