@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
-
 public class Board : MonoBehaviour
 {
-
     public static Board Instance;
     [SerializeField] public Vector2Int size; //Going to pull value from json
     [SerializeField] public float borderPadding;
@@ -150,7 +148,7 @@ public class Board : MonoBehaviour
             for (int y = 0; y < size.y; y++)
             {
                 Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], cells[size.x*y + x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
-                item.InitializeItemInBoard(new Vector2Int(x,y));
+                item.InitializeItem(new Vector2Int(x,y));
             }
         }
     }
@@ -182,15 +180,14 @@ public class Board : MonoBehaviour
     {
         foreach (Item item in items)
         {
-            item.FallIntoBoard();
+            item.Fall();
         }
     }
 
     private Item CreateNewItem(int x)
     {
         Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], columnQueues[x].GetNextPosition(), quaternion.identity, itemParent.transform).GetComponent<Item>();
-        item.InitializeItemAboveBoard(x);
-        columnQueues[x].Enqueue(item);
+        item.InitializeItem(new Vector2Int(x, -1));
         return item;
     }
 
@@ -242,5 +239,15 @@ public class Board : MonoBehaviour
         FindMatches(x-1, y, color, matches);
         FindMatches(x, y+1, color, matches);
         FindMatches(x, y-1, color, matches);
+    }
+
+    public bool IsInBoard(Vector2Int pos)
+    {
+        if (pos.x < 0 || pos.x >= size.x || pos.y < 0 || pos.y >= size.y)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
