@@ -16,13 +16,12 @@ public class Board : MonoBehaviour
     [SerializeField] private GameObject defaultItemPrefab;
     [SerializeField] private RectTransform boardBorderRect;
     [SerializeField] private GameObject[] testItemPrefabs;
-    
     [HideInInspector] public Cell[] cells;
     [HideInInspector] public Item[] items;
     [HideInInspector] public ColumnQueue[] columnQueues;
     [HideInInspector] public Vector2 cellSize;
-    private float _shadedFaceLength;
     private SpriteRenderer _borderSprite;
+    private BorderAdjuster _borderAdjuster;
     
     public void Awake()
     {
@@ -44,7 +43,7 @@ public class Board : MonoBehaviour
         FallItems();
         CreateNewItems();
     }
-    public void FallItems()
+    private void FallItems()
     {
         for (int x = 0; x < size.x; x++)
         {
@@ -72,7 +71,7 @@ public class Board : MonoBehaviour
         AdjustBorder();
         InitializeCells();
         InitializeItems();
-        InitializeQueuedItemCount();
+        InitializeColumnQueues();
     }
     private void InitializeSingleton()
     {
@@ -86,40 +85,14 @@ public class Board : MonoBehaviour
     private void InitializeComponents()
     {
         _borderSprite = GetComponent<SpriteRenderer>();
-        InitializeItemDimensions();
-    }
-    private void InitializeItemDimensions()
-    {
         Item defaultItem = defaultItemPrefab.GetComponent<Item>();
         cellSize = defaultItem.boxCollider.size;
-        _shadedFaceLength = defaultItem.spriteRenderer.size.y - cellSize.y;
     }
     private void AdjustBorder()
     {
-        float desiredRatio = boardBorderRect.rect.width / boardBorderRect.rect.height;
-        Vector2 midPoint = new Vector2(boardBorderRect.transform.position.x, boardBorderRect.transform.position.y);
-        float left = Mathf.Abs(boardBorderRect.offsetMin.x);
-        float right = Mathf.Abs(boardBorderRect.offsetMax.x);
-        float top = Mathf.Abs(boardBorderRect.offsetMax.y);
-        float bottom = Mathf.Abs(boardBorderRect.offsetMin.y);
-        float ratioX = boardBorderRect.rect.width / (boardBorderRect.rect.width + left + right);
-        float ratioY = boardBorderRect.rect.height / (boardBorderRect.rect.height + top + bottom);
-        _borderSprite.size = new Vector2(cellSize.x * size.x + borderPadding, cellSize.y * size.y + borderPadding + _shadedFaceLength);
-        float currentRatio = _borderSprite.size.x / _borderSprite.size.y;
-        float oldSize = activeCamera.orthographicSize;
-        if (currentRatio < desiredRatio)
-        {
-            activeCamera.orthographicSize = (cellSize.y * size.y + borderPadding) / ratioY / 2;
-        }
-        else
-        {
-            activeCamera.orthographicSize = ((cellSize.x * size.x + borderPadding) / ratioX) / (2 * activeCamera.aspect);
-        }
-        float sizeMultiplier = activeCamera.orthographicSize / oldSize;
-        transform.position = midPoint;
-        Vector2 adjustedPosition = transform.position;
-        adjustedPosition.y *= sizeMultiplier;
-        transform.position = adjustedPosition;
+        _borderAdjuster = new BorderAdjuster(transform, size, boardBorderRect, _borderSprite, borderPadding,
+            defaultItemPrefab, cellSize, activeCamera);
+        _borderAdjuster.Adjust();
     }
     private void InitializeCells()
     {
@@ -140,20 +113,8 @@ public class Board : MonoBehaviour
             addedOffset.y -= cellSize.y;
         }
     }
-    private void InitializeItems() //UPDATE
-    {
-        items = new Item[size.x * size.y];
-        for (int x = 0; x < size.x; x++)
-        {
-            for (int y = 0; y < size.y; y++)
-            {
-                Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], cells[size.x*y + x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
-                item.InitializeItem(new Vector2Int(x,y));
-            }
-        }
-    }
-
-    private void InitializeQueuedItemCount()
+    
+    private void InitializeColumnQueues()
     {
         columnQueues = new ColumnQueue[size.x];
         for (int x = 0; x < size.x; x++)
@@ -161,37 +122,59 @@ public class Board : MonoBehaviour
             columnQueues[x] = new ColumnQueue(cells[x].transform.position + (Vector3.up * cellSize.y));
         }
     }
+    
+    private void InitializeItems()
+    {
+        items = new Item[size.x * size.y];
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = size.y-1; y >= 0; y--)
+            {
+                CreateNewItem(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], new Vector2Int(x,y));
+            }
+        }
+    }
 
     private void CreateNewItems()
     {
-        List<Item> items = new List<Item>();
+        List<Item> createdItems = new List<Item>();
         for (int x = 0; x < size.x; x++)
         {
-            int emptyCellCount = GetEmptyCellCountInColumn(x);
-            for (int index = 0; index < emptyCellCount; index++)
+            int fallableCellCount = GetEmptyCellCountInColumn(x);
+            for (int index = 0; index < fallableCellCount; index++)
             {
-                items.Add(CreateNewItem(x));
+                createdItems.Add(CreateNewItem(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], new Vector2Int(x,-1)));
             }
         }
-        FallNewItems(items);
+        FallNewItems(createdItems);
     }
 
-    private void FallNewItems(List<Item> items)
+    private void FallNewItems(List<Item> newItems)
     {
-        foreach (Item item in items)
+        foreach (Item item in newItems)
         {
             item.Fall();
         }
     }
 
-    private Item CreateNewItem(int x)
+    private Item CreateNewItem(GameObject itemObject, Vector2Int pos)
     {
-        Item item = Instantiate(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], columnQueues[x].GetNextPosition(), quaternion.identity, itemParent.transform).GetComponent<Item>();
-        item.InitializeItem(new Vector2Int(x, -1));
+        Item item;
+        if (IsInBoard(pos))
+        {
+            item = Instantiate(itemObject, cells[pos.y * size.x + pos.x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
+            item.InitializeItem(pos);
+        }
+        else
+        {
+            item = Instantiate(itemObject, columnQueues[pos.x].GetNextPosition(), quaternion.identity, itemParent.transform).GetComponent<Item>();
+            item.InitializeItem(pos);
+        }
+        
         return item;
     }
 
-    private int GetEmptyCellCountInColumn(int x)
+    private int GetEmptyCellCountInColumn(int x, bool fromAbove = true)
     {
         int count = 0;
         for (int y = 0; y < size.y; y++)
@@ -201,7 +184,7 @@ public class Board : MonoBehaviour
             {
                 count += 1;
             }
-            else if (!item.fallable)
+            else if (!item.fallable && fromAbove)
             {
                 break;
             }
@@ -217,7 +200,7 @@ public class Board : MonoBehaviour
         return matches;
     }
 
-    public void FindMatches(int x, int y, ItemColor color, List<Item> matches)
+    private void FindMatches(int x, int y, ColorType color, List<Item> matches)
     {
         if (x < 0 || x >= size.x || y < 0 || y >= size.y)
         {

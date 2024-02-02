@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public abstract class Item : MonoBehaviour
@@ -11,7 +10,7 @@ public abstract class Item : MonoBehaviour
    public bool fallable;
    public bool touchable;
    public bool matchable;
-   public ItemColor color;
+   public ColorType color;
    public bool falling;
    public Vector2Int pos;
    public Vector2Int destinationPos;
@@ -62,12 +61,6 @@ public abstract class Item : MonoBehaviour
         //CheckMatches();
     }
     
-    public List<Item> CheckMatches()
-    {
-        List<Item> matchedItems = Board.Instance.CheckMatches(pos.x, pos.y);
-        return matchedItems;
-    }
-    
     IEnumerator FallCoroutine(Vector2Int nextStop)
     {
         SetDestinationPos(nextStop);
@@ -100,7 +93,7 @@ public abstract class Item : MonoBehaviour
                 SetDestinationPos(nextStop);
                 Board.Instance.FallItemsInColumn(pos.x);
             }
-            speed = Mathf.Min(speed + GameManager.Instance.acceleration * Time.deltaTime, GameManager.Instance.speedLimit);
+            speed = Mathf.Min(speed + LevelManager.Instance.acceleration * Time.deltaTime, LevelManager.Instance.speedLimit);
             transform.position += -Vector3.up * (speed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
@@ -108,20 +101,21 @@ public abstract class Item : MonoBehaviour
 
         void AdjustItemOnHit(Item bottomItem)
         {
-            if (GameManager.Instance.speedTransferType == 1) //slow down above object
+            if (LevelManager.Instance.speedTransferType == SpeedTransferType.TopToBottom)
             {
                 speed = bottomItem.speed;
                 transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
             }
-            else if (GameManager.Instance.speedTransferType == 2) //speed up bottom object
+            else if (LevelManager.Instance.speedTransferType == SpeedTransferType.BottomToTop)
             {
                 bottomItem.speed = speed;
+                transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
             }
         }
         bool IsReachedDestination(int destinationIndex)
         {
             float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
-            return distanceY <= GameManager.Instance.fallStopThreshold;
+            return distanceY <= LevelManager.Instance.fallStopThreshold;
         }
         bool UpdatePosition(int destinationIndex, int currentIndex)
         {
@@ -161,10 +155,10 @@ public abstract class Item : MonoBehaviour
 
     public void SetDestinationPos(Vector2Int newDestinationPos)
     {
-        this.destinationPos = newDestinationPos;
+        destinationPos = newDestinationPos;
     }
 
-    private int CalculateIndex(int x, int y)
+    protected int CalculateIndex(int x, int y)
     {
         return y * Board.Instance.size.x + x;
     }

@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ItemColor
+public enum ColorType
 {
+    NoColor,
     Red,
-    Blue,
+    Yellow,
     Green,
-    Yellow
+    Blue
 }
