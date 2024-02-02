@@ -281,10 +281,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6be0dd0e5ee1edf43be7bf9a12f4c3ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: 50
-  speedLimit: 50
-  fallStopThreshold: 0.02
-  speedTransferType: 1
 --- !u!4 &405924286
 Transform:
   m_ObjectHideFlags: 0
@@ -1359,7 +1355,7 @@ MonoBehaviour:
   - {fileID: 5194767123685943794, guid: 8137e9ba4855f4745bdc5ed2cd2d434e, type: 3}
   cells: []
   items: []
-  _cellSize: {x: 0, y: 0}
+  cellSize: {x: 0, y: 0}
 --- !u!212 &1914505923
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1456,6 +1452,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21982b44db287a843bc119e4702626d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  acceleration: 50
+  speedLimit: 50
+  fallStopThreshold: 0.02
+  speedTransferType: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

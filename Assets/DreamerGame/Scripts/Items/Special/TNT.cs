@@ -16,7 +16,7 @@ public class TNT : Item
                     Item item = Board.Instance.items[y * Board.Instance.size.x + x];
                     if (item != null)
                     {
-                        item.ReleaseReservedCell();
+                        item.SetDestinationPos(invalidPos);
                         Board.Instance.items[y * Board.Instance.size.x + x] = null;
                         Destroy(item.gameObject);
                     }
