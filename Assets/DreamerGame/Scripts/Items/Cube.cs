@@ -6,8 +6,7 @@ public class Cube : Item
 {
     public override void TouchBehaviour()
     {
-
-        var items = CheckMatches();
+        var items = Board.Instance.CheckMatches(pos.x, pos.y);
         if (items == null || items.Count < 2)
         {
             return;
@@ -15,12 +14,12 @@ public class Cube : Item
         items.Remove(this);
         foreach (var item in items)
         {
-            item.ReleaseReservedCell();
-            Board.Instance.items[item.pos.y * Board.Instance.size.x + item.pos.x] = null;
+            item.SetDestinationPos(invalidPos);
+            Board.Instance.items[CalculateIndex(item.pos.x, item.pos.y)] = null;
             Destroy(item.gameObject);
         }
-        ReleaseReservedCell();
-        Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
+        SetDestinationPos(invalidPos);
+        Board.Instance.items[CalculateIndex(pos.x, pos.y)] = null;
         Destroy(gameObject);
     }
 }

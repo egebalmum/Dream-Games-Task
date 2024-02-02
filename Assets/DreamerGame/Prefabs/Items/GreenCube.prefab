@@ -135,10 +135,10 @@ MonoBehaviour:
   fallable: 1
   touchable: 1
   matchable: 1
-  color: 2
+  color: 3
   falling: 0
   pos: {x: 0, y: 0}
-  reservedCell: {x: 0, y: 0}
+  destinationPos: {x: 0, y: 0}
   speed: 0
 --- !u!61 &861072346091355378
 BoxCollider2D:
