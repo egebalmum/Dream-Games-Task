@@ -134,9 +134,12 @@ MonoBehaviour:
   boxCollider: {fileID: 861072346091355378}
   fallable: 1
   touchable: 1
-  matchable: 0
+  matchable: 1
+  color: 4
   falling: 0
   pos: {x: 0, y: 0}
+  destinationPos: {x: 0, y: 0}
+  speed: 0
 --- !u!61 &861072346091355378
 BoxCollider2D:
   m_ObjectHideFlags: 0

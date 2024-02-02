@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening;
 using UnityEngine;
 
 public abstract class Item : MonoBehaviour
@@ -11,10 +10,12 @@ public abstract class Item : MonoBehaviour
    public bool fallable;
    public bool touchable;
    public bool matchable;
+   public ColorType color;
    public bool falling;
    public Vector2Int pos;
-   public Vector2Int reservedCell;
+   public Vector2Int destinationPos;
    public float speed;
+   protected readonly Vector2Int invalidPos = new Vector2Int(-1, -1);
    
    private void OnMouseDown()
    {
@@ -26,184 +27,140 @@ public abstract class Item : MonoBehaviour
       Board.Instance.TouchItem(this);
    }
    
-   public void InitializeItemInBoard(Vector2Int posInBoard)
+   public void InitializeItem(Vector2Int initialPos)
    {
-      pos = posInBoard;
-      Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = this;
-      reservedCell = new Vector2Int(-1, -1);
-   }
-
-   public void InitializeItemAboveBoard(int x)
-   {
-       pos = new Vector2Int(x, -1);
-       reservedCell = new Vector2Int(-1, -1);
+       if (Board.Instance.IsInBoard(initialPos))
+       {
+           Board.Instance.items[initialPos.y * Board.Instance.size.x + initialPos.x] = this;
+       }
+       else
+       {
+           Board.Instance.columnQueues[initialPos.x].Enqueue(this);
+       }
+       pos = initialPos;
+       destinationPos = invalidPos;
    }
    
     public bool Fall()
     {
-        int destinationY = GetBottomY();
-        if (destinationY == -1)
+        Vector2Int nextStop = GetNextStop();
+        if (nextStop == invalidPos)
         {
             return false;
         }
         falling = true;
-        StartCoroutine(FallCoroutine(destinationY));
+        StartCoroutine(FallCoroutine(nextStop));
         return true;
     }
 
-    public void FallIntoBoard()
+    private void StopFall()
     {
-        falling = true;
-        StartCoroutine(FallIntoBoardCoroutine());
+        SetDestinationPos(invalidPos);
+        falling = false;
+        speed = 0;
+        //CheckMatches();
     }
-
-    IEnumerator FallCoroutine(int destinationY)
+    
+    IEnumerator FallCoroutine(Vector2Int nextStop)
     {
-        ReserveCell(pos.x, destinationY);
+        SetDestinationPos(nextStop);
         while (true)
         {
-            int destinationIndex = CalculateIndex(pos.x, destinationY);
             int currentIndex = CalculateIndex(pos.x, pos.y);
-
+            int destinationIndex = CalculateIndex(destinationPos.x, destinationPos.y);
             Item bottomItem = Board.Instance.items[destinationIndex];
             if (bottomItem != null)
             {
                 float distanceYBetween = transform.position.y - bottomItem.transform.position.y;
                 if (distanceYBetween <= Board.Instance.cellSize.y)
                 {
-                    if (GameManager.Instance.speedTransferType == 1) //slow down above object
-                    {
-                        speed = bottomItem.speed;
-                        transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
-                    }
-                    else if (GameManager.Instance.speedTransferType == 2) //speed up bottom object
-                    {
-                        bottomItem.speed = speed;
-                    }
+                    AdjustItemOnHit(bottomItem);
                 }
             }
             if (IsReachedDestination(destinationIndex))
             {
-                if (!UpdatePosition(destinationIndex, currentIndex, destinationY))
+                if (!UpdatePosition(destinationIndex, currentIndex))
                 {
                     speed = Board.Instance.items[destinationIndex].speed;
                     yield return new WaitWhile(() => Board.Instance.items[destinationIndex] != null);
-                    UpdatePosition(destinationIndex, currentIndex, destinationY);
+                    UpdatePosition(destinationIndex, currentIndex);
                 }
-                destinationY = GetBottomY();
-                if (destinationY == -1)
+                nextStop = GetNextStop();
+                if (nextStop == invalidPos)
                 {
                     break;
                 }
-                ReserveCell(pos.x, destinationY);
+                SetDestinationPos(nextStop);
                 Board.Instance.FallItemsInColumn(pos.x);
             }
-            speed = Mathf.Min(speed + GameManager.Instance.acceleration * Time.deltaTime, GameManager.Instance.speedLimit);
+            speed = Mathf.Min(speed + LevelManager.Instance.acceleration * Time.deltaTime, LevelManager.Instance.speedLimit);
             transform.position += -Vector3.up * (speed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
-        ReleaseReservedCell();
-        falling = false;
-        speed = 0;
+        StopFall();
+
+        void AdjustItemOnHit(Item bottomItem)
+        {
+            if (LevelManager.Instance.speedTransferType == SpeedTransferType.TopToBottom)
+            {
+                speed = bottomItem.speed;
+                transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
+            }
+            else if (LevelManager.Instance.speedTransferType == SpeedTransferType.BottomToTop)
+            {
+                bottomItem.speed = speed;
+                transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
+            }
+        }
         bool IsReachedDestination(int destinationIndex)
         {
             float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
-            return distanceY <= GameManager.Instance.fallStopThreshold;
+            return distanceY <= LevelManager.Instance.fallStopThreshold;
         }
-
-        bool UpdatePosition(int destinationIndex, int currentIndex, int destinationY)
+        bool UpdatePosition(int destinationIndex, int currentIndex)
         {
             if (Board.Instance.items[destinationIndex] == null)
             {
-                Board.Instance.items[currentIndex] = null;
-                Board.Instance.items[destinationIndex] = this;
-                pos.y = destinationY;
-                transform.position = Board.Instance.cells[destinationIndex].transform.position;
-                ReleaseReservedCell();
-                return true;
-            }
-            return false;
-        }
-    }
-
-    IEnumerator FallIntoBoardCoroutine()
-    {
-        while (true)
-        {
-            int destinationIndex = CalculateIndex(pos.x, 0);
-            if (IsReachedDestination(destinationIndex))
-            {
-                if (!UpdatePosition(destinationIndex, 0))
+                if (currentIndex >= 0)
                 {
-                    speed = Board.Instance.items[destinationIndex].speed;
-                    yield return new WaitWhile(() => Board.Instance.items[destinationIndex] != null);
-                    UpdatePosition(destinationIndex, 0);
+                    Board.Instance.items[currentIndex] = null;
                 }
-                break;
-            }
-            speed = Mathf.Min(speed + GameManager.Instance.acceleration * Time.deltaTime, GameManager.Instance.speedLimit);
-            transform.position += -Vector3.up * (speed * Time.deltaTime);
-            yield return new WaitForEndOfFrame();
-        }
-
-        Board.Instance.columnQueues[pos.x].Dequeue(this);
-        if (!Fall())
-        {
-            speed = 0;
-            falling = false;
-        }
-        bool IsReachedDestination(int destinationIndex)
-        {
-            float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
-            return distanceY <= GameManager.Instance.fallStopThreshold;
-        }
-
-        bool UpdatePosition(int destinationIndex, int destinationY)
-        {
-            if (Board.Instance.items[destinationIndex] == null)
-            {
+                else
+                {
+                    Board.Instance.columnQueues[pos.x].Dequeue(this);
+                }
                 Board.Instance.items[destinationIndex] = this;
-                pos.y = destinationY;
                 transform.position = Board.Instance.cells[destinationIndex].transform.position;
+                pos = destinationPos;
+                SetDestinationPos(invalidPos);
                 return true;
             }
             return false;
         }
     }
-
-    private int GetBottomY()
-    {
-        int nextY = pos.y + 1;
-        if (nextY >= Board.Instance.size.y) return -1;
     
-        int bottomIndex = CalculateIndex(pos.x, nextY);
+    private Vector2Int GetNextStop()
+    {
+        Vector2Int nextStop = new Vector2Int(pos.x, pos.y + 1);
+        if (!Board.Instance.IsInBoard(nextStop)) 
+            return invalidPos;
+    
+        int bottomIndex = CalculateIndex(nextStop.x, nextStop.y);
         Item bottomItem = Board.Instance.items[bottomIndex];
 
-        if ((bottomItem == null || bottomItem.falling) && !Board.Instance.cells[bottomIndex].reserved)
-            return nextY;
-        return -1;
+        if (bottomItem == null || (bottomItem.falling && bottomItem.destinationPos != bottomItem.pos))
+            return nextStop;
+        return invalidPos;
     }
 
-    public void ReleaseReservedCell()
+    public void SetDestinationPos(Vector2Int newDestinationPos)
     {
-        if (reservedCell != new Vector2Int(-1,-1))
-        {
-            Board.Instance.cells[CalculateIndex(reservedCell.x, reservedCell.y)].reserved = false;
-            reservedCell = new Vector2Int(-1,-1);
-        }
+        destinationPos = newDestinationPos;
     }
 
-    public void ReserveCell(int x, int y)
-    {
-        ReleaseReservedCell();
-        Board.Instance.cells[CalculateIndex(x, y)].reserved = true;
-        reservedCell = new Vector2Int(x, y);
-    }
-
-    private int CalculateIndex(int x, int y)
+    protected int CalculateIndex(int x, int y)
     {
         return y * Board.Instance.size.x + x;
     }
-
    public abstract void TouchBehaviour();
 }
