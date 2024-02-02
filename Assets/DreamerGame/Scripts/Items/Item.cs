@@ -11,6 +11,7 @@ public abstract class Item : MonoBehaviour
    public bool fallable;
    public bool touchable;
    public bool matchable;
+   public ItemColor color;
    public bool falling;
    public Vector2Int pos;
    public Vector2Int reservedCell;
@@ -46,11 +47,29 @@ public abstract class Item : MonoBehaviour
         {
             return false;
         }
-        falling = true;
+        StartFall();
         StartCoroutine(FallCoroutine(destinationY));
         return true;
     }
 
+    private void StartFall()
+    {
+        falling = true;
+    }
+
+    private void StopFall()
+    {
+        ReleaseReservedCell();
+        falling = false;
+        speed = 0;
+        //CheckMatches();
+    }
+
+    public List<Item> CheckMatches()
+    {
+        List<Item> matchedItems = Board.Instance.CheckMatches(pos.x, pos.y);
+        return matchedItems;
+    }
     public void FallIntoBoard()
     {
         falling = true;
@@ -102,9 +121,7 @@ public abstract class Item : MonoBehaviour
             transform.position += -Vector3.up * (speed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
-        ReleaseReservedCell();
-        falling = false;
-        speed = 0;
+        StopFall();
         bool IsReachedDestination(int destinationIndex)
         {
             float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
@@ -149,8 +166,7 @@ public abstract class Item : MonoBehaviour
         Board.Instance.columnQueues[pos.x].Dequeue(this);
         if (!Fall())
         {
-            speed = 0;
-            falling = false;
+            StopFall();
         }
         bool IsReachedDestination(int destinationIndex)
         {

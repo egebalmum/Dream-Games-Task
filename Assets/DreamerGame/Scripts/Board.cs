@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public class Board : MonoBehaviour
@@ -51,18 +50,7 @@ public class Board : MonoBehaviour
     {
         for (int x = 0; x < size.x; x++)
         {
-            for (int y = size.y-2; y >= 0; y--)
-            {
-                Item item = items[y * size.x + x];
-                if (item != null && item.fallable && !item.falling)
-                {
-                    Item bottomItem = items[(y + 1) * size.x + x];
-                    if (bottomItem == null || bottomItem.falling)
-                    {
-                        item.Fall();
-                    }
-                }
-            }
+            FallItemsInColumn(x);
         }
     }
     public void FallItemsInColumn(int x)
@@ -154,7 +142,7 @@ public class Board : MonoBehaviour
             addedOffset.y -= cellSize.y;
         }
     }
-    private void InitializeItems()
+    private void InitializeItems() //UPDATE
     {
         items = new Item[size.x * size.y];
         for (int x = 0; x < size.x; x++)
@@ -223,5 +211,36 @@ public class Board : MonoBehaviour
         }
         count -= columnQueues[x].Count();
         return count;
+    }
+
+    public List<Item> CheckMatches(int startX, int startY)
+    {
+        List<Item> matches = new List<Item>();
+        FindMatches(startX, startY, items[startY* size.x + startX].color, matches);
+        return matches;
+    }
+
+    public void FindMatches(int x, int y, ItemColor color, List<Item> matches)
+    {
+        if (x < 0 || x >= size.x || y < 0 || y >= size.y)
+        {
+            return;
+        }
+        Item item = items[y * size.x + x];
+        if (item == null)
+        {
+            return;
+        }
+
+        if (item.falling || !item.matchable || matches.Contains(item) || item.color != color)
+        {
+            return;
+        }
+        
+        matches.Add(item);
+        FindMatches(x+1, y, color, matches);
+        FindMatches(x-1, y, color, matches);
+        FindMatches(x, y+1, color, matches);
+        FindMatches(x, y-1, color, matches);
     }
 }
