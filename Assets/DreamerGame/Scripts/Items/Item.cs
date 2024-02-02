@@ -74,6 +74,7 @@ public abstract class Item : MonoBehaviour
                     if (GameManager.Instance.speedTransferType == 1) //slow down above object
                     {
                         speed = bottomItem.speed;
+                        transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
                     }
                     else if (GameManager.Instance.speedTransferType == 2) //speed up bottom object
                     {
@@ -85,6 +86,7 @@ public abstract class Item : MonoBehaviour
             {
                 if (!UpdatePosition(destinationIndex, currentIndex, destinationY))
                 {
+                    speed = Board.Instance.items[destinationIndex].speed;
                     yield return new WaitWhile(() => Board.Instance.items[destinationIndex] != null);
                     UpdatePosition(destinationIndex, currentIndex, destinationY);
                 }
@@ -117,7 +119,7 @@ public abstract class Item : MonoBehaviour
                 Board.Instance.items[destinationIndex] = this;
                 pos.y = destinationY;
                 transform.position = Board.Instance.cells[destinationIndex].transform.position;
-                Board.Instance.cells[destinationIndex].reserved = false;
+                ReleaseReservedCell();
                 return true;
             }
             return false;
@@ -133,6 +135,7 @@ public abstract class Item : MonoBehaviour
             {
                 if (!UpdatePosition(destinationIndex, 0))
                 {
+                    speed = Board.Instance.items[destinationIndex].speed;
                     yield return new WaitWhile(() => Board.Instance.items[destinationIndex] != null);
                     UpdatePosition(destinationIndex, 0);
                 }

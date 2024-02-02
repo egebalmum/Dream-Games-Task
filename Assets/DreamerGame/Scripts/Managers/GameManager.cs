@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public int speedTransferType = 1;
     private void Awake()
     {
+        Application.targetFrameRate = 60;
         InitializeSingleton();
     }
 
