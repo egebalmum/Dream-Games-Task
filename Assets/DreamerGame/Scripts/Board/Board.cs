@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -21,6 +22,7 @@ public class Board : MonoBehaviour
     [HideInInspector] public Vector2 cellSize;
     private SpriteRenderer _borderSprite;
     private BorderAdjuster _borderAdjuster;
+    private int _fallingObjectCount = 0;
     
     public void Awake()
     {
@@ -32,6 +34,15 @@ public class Board : MonoBehaviour
         InitializeComponents();
         InitializeLevel();
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            ShuffleBoard();
+        }
+    }
+
     public void TouchItem(Item item)
     {
         if (item.falling)
@@ -314,7 +325,7 @@ public class Board : MonoBehaviour
         return true;
     }
 
-    public bool IsInBoard(int index)
+    private bool IsInBoard(int index)
     {
         if (index < 0 || index >= size.x * size.y)
         {
@@ -322,5 +333,82 @@ public class Board : MonoBehaviour
         }
 
         return true;
+    }
+
+
+    private bool DoesMatchExist()
+    {
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = size.y - 1; y >= 0; y--)
+            {
+                if (items[CalculateIndex(x, y)].interactable)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    private IEnumerator ShuffleBoard()
+    {
+        yield return new WaitForSeconds(0.5f);
+        int depth = 3;
+        while (depth > 0)
+        {
+            List<Item> itemList = new List<Item>();
+            for (int x = 0; x < size.x; x++)
+            {
+                for (int y = size.y - 1; y >= 0; y--)
+                {
+                    itemList.Add(items[CalculateIndex(x,y)]);
+                }
+            }
+            itemList.Shuffle();
+            for (int x = 0; x < size.x; x++)
+            {
+                for (int y = size.y - 1; y >= 0; y--)
+                {
+                    items[CalculateIndex(x, y)] = itemList[^1];
+                    itemList.Remove(itemList[^1]);
+                    items[CalculateIndex(x, y)].transform.position = cells[CalculateIndex(x, y)].transform.position;
+                    items[CalculateIndex(x, y)].pos = new Vector2Int(x, y);
+                }
+            }
+            CheckBoardMatches();
+            if (DoesMatchExist())
+            {
+                break;
+            }
+
+            depth -= 1;
+        }
+
+        if (depth == 0)
+        {
+            Debug.LogError("CANNOT GENERATE MATCH");
+        }
+        
+    }
+
+    public void RegisterFallingObject(bool value)
+    {
+        if (value)
+        {
+            _fallingObjectCount += 1;
+        }
+        else
+        {
+            _fallingObjectCount -= 1;
+        }
+
+        if (_fallingObjectCount == 0)
+        {
+            if (!DoesMatchExist())
+            {
+                StartCoroutine(ShuffleBoard());
+            }
+        }
     }
 }

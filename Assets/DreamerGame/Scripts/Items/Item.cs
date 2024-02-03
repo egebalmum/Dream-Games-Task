@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 public abstract class Item : MonoBehaviour
-{  
+{ 
     [Header("Components")]
    public SpriteRenderer spriteRenderer;
    public BoxCollider2D boxCollider;
@@ -16,6 +15,8 @@ public abstract class Item : MonoBehaviour
    public bool fallable;
    public bool touchable;
    public bool matchable;
+   public int minMatchCount;
+   public bool interactable;
    public ColorType color;
    public ItemType type;
    [SerializeField] public ItemSprite.SpecialSpriteContainer[] specialSpriteContainers;
@@ -67,8 +68,10 @@ public abstract class Item : MonoBehaviour
         {
             return false;
         }
-
+        
         falling = true;
+        Board.Instance.RegisterFallingObject(true);
+        
         if (matchable && Board.Instance.IsInBoard(pos))
         {
             UpdateMatches();
@@ -82,9 +85,11 @@ public abstract class Item : MonoBehaviour
     private void StopFall()
     {
         SetDestinationPos(invalidPos);
+        
         falling = false;
         speed = 0;
         UpdateMatches();
+        Board.Instance.RegisterFallingObject(false);
     }
     
     IEnumerator FallCoroutine(Vector2Int nextStop)
@@ -196,8 +201,12 @@ public abstract class Item : MonoBehaviour
             StopCoroutine(fallCoroutine);
         }
         Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
-        falling = false;
-        speed = 0;
+        if (falling)
+        {
+            speed = 0;
+            falling = false;
+            Board.Instance.RegisterFallingObject(false);
+        }
         SetDestinationPos(invalidPos);
         matchCount = 1;
         var items = Board.Instance.AroundItems(pos);
@@ -234,6 +243,14 @@ public abstract class Item : MonoBehaviour
         else
         {
             matchCount = Board.Instance.CheckMatches(pos.x, pos.y).Count;
+            if (matchCount >= minMatchCount)
+            {
+                interactable = true;
+            }
+            else
+            {
+                interactable = false;
+            }
         }
         OnMatchCountUpdated?.Invoke();
     }

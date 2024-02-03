@@ -139,6 +139,8 @@ MonoBehaviour:
   fallable: 1
   touchable: 1
   matchable: 1
+  minMatchCount: 2
+  interactable: 0
   color: 1
   type: 0
   specialSpriteContainers:
