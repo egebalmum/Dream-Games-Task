@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class TNT : Item
 {
+    [Header("Type Specific Attributes")]
     [SerializeField] private int diameter = 3;
     public override void TouchBehaviour()
     {
@@ -16,9 +17,7 @@ public class TNT : Item
                     Item item = Board.Instance.items[y * Board.Instance.size.x + x];
                     if (item != null)
                     {
-                        item.SetDestinationPos(invalidPos);
-                        Board.Instance.items[y * Board.Instance.size.x + x] = null;
-                        Destroy(item.gameObject);
+                        item.DestroyItem();
                     }
                 }
             }

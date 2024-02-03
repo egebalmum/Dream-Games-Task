@@ -8,5 +8,6 @@ public enum ColorType
     Red,
     Yellow,
     Green,
-    Blue
+    Blue,
+    Random
 }

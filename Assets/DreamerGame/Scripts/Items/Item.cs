@@ -1,21 +1,36 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 public abstract class Item : MonoBehaviour
-{
+{  
+    [Header("Components")]
    public SpriteRenderer spriteRenderer;
    public BoxCollider2D boxCollider;
+   
+   [Header("Attributes")]
    public bool fallable;
    public bool touchable;
    public bool matchable;
    public ColorType color;
-   public bool falling;
-   public Vector2Int pos;
-   public Vector2Int destinationPos;
-   public float speed;
-   protected readonly Vector2Int invalidPos = new Vector2Int(-1, -1);
+   public ItemType type;
+   [SerializeField] public ItemSprite.SpecialSpriteContainer[] specialSpriteContainers;
+   [SerializeField] public ItemSprite.SpriteContainer[] spriteContainers;
+   [HideInInspector]public bool falling;
+   [HideInInspector]public Vector2Int pos;
+   [HideInInspector]public Vector2Int destinationPos;
+   [HideInInspector]public float speed;
+   [HideInInspector]public int matchCount = 1;
+   [HideInInspector] public UnityEvent OnMatchCountUpdated;
+   [HideInInspector] public ColorStorage[] colorStorages;
+   private Coroutine fallCoroutine;
+   
+   
+   private readonly Vector2Int invalidPos = new Vector2Int(-1, -1);
    
    private void OnMouseDown()
    {
@@ -26,8 +41,12 @@ public abstract class Item : MonoBehaviour
       }
       Board.Instance.TouchItem(this);
    }
-   
-   public void InitializeItem(Vector2Int initialPos)
+
+   public void InitializeItem()
+   {
+       colorStorages = GetComponents<ColorStorage>();
+   }
+   public virtual void InitializeItemInBoard(Vector2Int initialPos)
    {
        if (Board.Instance.IsInBoard(initialPos))
        {
@@ -48,8 +67,15 @@ public abstract class Item : MonoBehaviour
         {
             return false;
         }
+
         falling = true;
-        StartCoroutine(FallCoroutine(nextStop));
+        if (matchable && Board.Instance.IsInBoard(pos))
+        {
+            UpdateMatches();
+            var items = Board.Instance.AroundItems(pos);
+            items.ForEach(item => item.UpdateMatches());
+        }
+        fallCoroutine = StartCoroutine(FallCoroutine(nextStop));
         return true;
     }
 
@@ -58,7 +84,7 @@ public abstract class Item : MonoBehaviour
         SetDestinationPos(invalidPos);
         falling = false;
         speed = 0;
-        //CheckMatches();
+        UpdateMatches();
     }
     
     IEnumerator FallCoroutine(Vector2Int nextStop)
@@ -158,9 +184,73 @@ public abstract class Item : MonoBehaviour
         destinationPos = newDestinationPos;
     }
 
-    protected int CalculateIndex(int x, int y)
+    private int CalculateIndex(int x, int y)
     {
         return y * Board.Instance.size.x + x;
+    }
+
+    public void DestroyItem()
+    {
+        if (fallCoroutine != null)
+        {
+            StopCoroutine(fallCoroutine);
+        }
+        Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
+        falling = false;
+        speed = 0;
+        SetDestinationPos(invalidPos);
+        matchCount = 1;
+        var items = Board.Instance.AroundItems(pos);
+        items.ForEach(item => item.UpdateMatches());
+        ObjectPool.Instance.DestroyItem(this);
+    }
+    
+
+    public void UpdateMatches()
+    {
+        if (matchable && Board.Instance.IsInBoard(pos))
+        {
+            List<Item> items = Board.Instance.CheckMatches(pos.x, pos.y);
+            if (items.Count == 0)
+            {
+                UpdateMatchCount();
+                return;
+            }
+            items.ForEach(item => item.UpdateMatchCount());
+        }
+    }
+
+    private void UpdateMatchCount()
+    {
+        if (!matchable)
+        {
+            return;
+        }
+
+        if (falling)
+        {
+            matchCount = 1;
+        }
+        else
+        {
+            matchCount = Board.Instance.CheckMatches(pos.x, pos.y).Count;
+        }
+        OnMatchCountUpdated?.Invoke();
+    }
+
+    public void SetColor(ColorType newColor)
+    {
+        if (colorStorages == null)
+        {
+            Debug.LogError("Item is not colored");
+            return;
+        }
+
+        var storage = colorStorages.First(storage => storage.color == newColor);
+        color = storage.color;
+        specialSpriteContainers = storage.specialStates;
+        spriteContainers = storage.states;
+        spriteRenderer.sprite = spriteContainers[0].sprite;
     }
    public abstract void TouchBehaviour();
 }
