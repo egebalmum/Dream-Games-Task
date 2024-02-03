@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class Box : Item
 {
-    public override void TouchBehaviour()
+    public override void NearBlastBehaviour()
     {
-        throw new System.NotImplementedException();
+        DestroyItem();
+    }
+
+    public override void ExplosionBehavior()
+    {
+        DestroyItem();
     }
 }

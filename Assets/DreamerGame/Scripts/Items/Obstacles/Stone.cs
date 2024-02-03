@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Stone : Item
 {
-    public override void TouchBehaviour()
+    public override void ExplosionBehavior()
     {
-        throw new System.NotImplementedException();
+        DestroyItem();
     }
 }

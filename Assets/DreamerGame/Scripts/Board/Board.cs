@@ -149,7 +149,18 @@ public class Board : MonoBehaviour
         {
             for (int y = size.y-1; y >= 0; y--)
             {
-                CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Random);
+                if (y == size.y - 4)
+                {
+                    CreateNewItem(ItemType.Box, new Vector2Int(x,y));
+                }
+                else if (y == size.y - 6)
+                {
+                    CreateNewItem(ItemType.Stone, new Vector2Int(x,y));
+                }
+                else
+                {
+                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Random);
+                }
             }
         }
     }

@@ -14,8 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   poolableObjects:
   - type: 0
-    amount: 50
+    amount: 30
     prefab: {fileID: 5194767123685943794, guid: 41c13f015f0664c438ebb1a7c14b76b1, type: 3}
   - type: 1
-    amount: 50
+    amount: 10
     prefab: {fileID: 5194767123685943794, guid: 8137e9ba4855f4745bdc5ed2cd2d434e, type: 3}
+  - type: 2
+    amount: 10
+    prefab: {fileID: 5194767123685943794, guid: 26f3bde34aa7915468b47ed476362169, type: 3}
+  - type: 3
+    amount: 10
+    prefab: {fileID: 5194767123685943794, guid: 02c36df96aeb4264fae018c91fd22261, type: 3}

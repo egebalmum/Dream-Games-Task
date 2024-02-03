@@ -269,5 +269,24 @@ public abstract class Item : MonoBehaviour
         spriteContainers = storage.states;
         spriteRenderer.sprite = spriteContainers[0].sprite;
     }
-   public abstract void TouchBehaviour();
+
+    public virtual void TouchBehaviour()
+    {
+        //
+    }
+
+    public virtual void ExplosionBehavior()
+    {
+        //
+    }
+
+    public virtual void BlastBehaviour(List<Item> itemListFromCaller = null)
+    {
+        //
+    }
+
+    public virtual void NearBlastBehaviour()
+    {
+        //
+    }
 }
