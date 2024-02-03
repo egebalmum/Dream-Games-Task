@@ -43,14 +43,12 @@ public class ObjectPool : MonoBehaviour
     
     public Item CreateItem(ItemType type, Vector3 position, ColorType color)
     {
-        Item item = itemPool.First(item => item.type == type);
+        Item item = itemPool.FirstOrDefault(item => item.type == type);
         if (item == null)
         {
             var poolableObject= _poolableObjects.First(poolableObject => poolableObject.type == type);
             item = Instantiate(poolableObject.prefab, Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
             item.InitializeItem();
-            itemPool.Add(item);
-            return item;
         }
         item.transform.position = position;
         SetItemColor(item, color);
