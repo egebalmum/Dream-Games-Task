@@ -135,10 +135,20 @@ MonoBehaviour:
   fallable: 1
   touchable: 1
   matchable: 0
+  color: 0
+  type: 1
+  specialSpriteContainers: []
+  spriteContainers:
+  - sprite: {fileID: 21300000, guid: 3da41cef0af819743816023090662090, type: 3}
   falling: 0
   pos: {x: 0, y: 0}
-  reservedCell: {x: 0, y: 0}
+  destinationPos: {x: 0, y: 0}
   speed: 0
+  matchCount: 1
+  OnMatchCountUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  colorStorages: []
   diameter: 5
 --- !u!61 &861072346091355378
 BoxCollider2D:

@@ -1014,7 +1014,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 70}
+  m_AnchoredPosition: {x: 0, y: 69.99997}
   m_SizeDelta: {x: 1125, y: 650}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1247534988
@@ -1127,6 +1127,50 @@ RectTransform:
   m_AnchoredPosition: {x: -385.16, y: -31.940002}
   m_SizeDelta: {x: 240.12, y: 238.43}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1716518107
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1716518109}
+  - component: {fileID: 1716518108}
+  m_Layer: 0
+  m_Name: ObjectPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1716518108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1716518107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a380cdefda8eac94ab239456ed28e5a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1716518109
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1716518107}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.1760726, y: -0.32126588, z: -0.08250796}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1732501056
 GameObject:
   m_ObjectHideFlags: 0
@@ -1339,20 +1383,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58516a7b3357e6b4ab0e008022215cf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 10, y: 10}
+  size: {x: 6, y: 6}
   borderPadding: 0.33
   cellParent: {fileID: 1172296120}
   itemParent: {fileID: 1732501056}
   cellPrefab: {fileID: 3482862382021540691, guid: 32ce9ef7b7ad1d04e83e02daf71250aa, type: 3}
   activeCamera: {fileID: 519420031}
-  defaultItemPrefab: {fileID: 5194767123685943794, guid: fd4b1bd945faef84c8f1bc716d660ff2, type: 3}
+  defaultItemPrefab: {fileID: 5194767123685943794, guid: 41c13f015f0664c438ebb1a7c14b76b1, type: 3}
   boardBorderRect: {fileID: 1464416514}
-  testItemPrefabs:
-  - {fileID: 5194767123685943794, guid: 459c8324f3b0c4c4dbd64ab87f7d6923, type: 3}
-  - {fileID: 5194767123685943794, guid: e60eb4dee4421f248b8244e47c6387b1, type: 3}
-  - {fileID: 5194767123685943794, guid: 41c13f015f0664c438ebb1a7c14b76b1, type: 3}
-  - {fileID: 5194767123685943794, guid: b1a2ec5d8cbbd8147a686f10ee886d76, type: 3}
-  - {fileID: 5194767123685943794, guid: 8137e9ba4855f4745bdc5ed2cd2d434e, type: 3}
   cells: []
   items: []
   cellSize: {x: 0, y: 0}
@@ -1466,3 +1504,4 @@ SceneRoots:
   - {fileID: 918327906}
   - {fileID: 1914505921}
   - {fileID: 405924286}
+  - {fileID: 1716518109}

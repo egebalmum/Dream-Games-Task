@@ -15,7 +15,6 @@ public class Board : MonoBehaviour
     [SerializeField] private Camera activeCamera;
     [SerializeField] private GameObject defaultItemPrefab;
     [SerializeField] private RectTransform boardBorderRect;
-    [SerializeField] private GameObject[] testItemPrefabs;
     [HideInInspector] public Cell[] cells;
     [HideInInspector] public Item[] items;
     [HideInInspector] public ColumnQueue[] columnQueues;
@@ -40,6 +39,7 @@ public class Board : MonoBehaviour
             return;
         }
         item.TouchBehaviour();
+        //CheckBoardMatches();
         FallItems();
         CreateNewItems();
     }
@@ -69,9 +69,11 @@ public class Board : MonoBehaviour
     private void InitializeLevel()
     {
         AdjustBorder();
+        InitializePool();
         InitializeCells();
         InitializeItems();
         InitializeColumnQueues();
+        CheckBoardMatches();
     }
     private void InitializeSingleton()
     {
@@ -88,6 +90,12 @@ public class Board : MonoBehaviour
         Item defaultItem = defaultItemPrefab.GetComponent<Item>();
         cellSize = defaultItem.boxCollider.size;
     }
+
+    private void InitializePool()
+    {
+        ObjectPool.Instance.CreatePool(itemParent.transform);
+    }
+    
     private void AdjustBorder()
     {
         _borderAdjuster = new BorderAdjuster(transform, size, boardBorderRect, _borderSprite, borderPadding,
@@ -130,7 +138,7 @@ public class Board : MonoBehaviour
         {
             for (int y = size.y-1; y >= 0; y--)
             {
-                CreateNewItem(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], new Vector2Int(x,y));
+                CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Random);
             }
         }
     }
@@ -143,7 +151,7 @@ public class Board : MonoBehaviour
             int fallableCellCount = GetEmptyCellCountInColumn(x);
             for (int index = 0; index < fallableCellCount; index++)
             {
-                createdItems.Add(CreateNewItem(testItemPrefabs[Random.Range(0,testItemPrefabs.Length)], new Vector2Int(x,-1)));
+                createdItems.Add(CreateNewItem(ItemType.Cube, new Vector2Int(x,-1), ColorType.Random));
             }
         }
         FallNewItems(createdItems);
@@ -157,18 +165,20 @@ public class Board : MonoBehaviour
         }
     }
 
-    private Item CreateNewItem(GameObject itemObject, Vector2Int pos)
+    public Item CreateNewItem(ItemType type, Vector2Int pos, ColorType color = ColorType.NoColor)
     {
         Item item;
         if (IsInBoard(pos))
         {
-            item = Instantiate(itemObject, cells[pos.y * size.x + pos.x].transform.position, quaternion.identity, itemParent.transform).GetComponent<Item>();
-            item.InitializeItem(pos);
+            item = ObjectPool.Instance.CreateItem(type, cells[pos.y * size.x + pos.x].transform.position, color);
+            item.transform.SetParent(itemParent.transform);
+            item.InitializeItemInBoard(pos);
         }
         else
         {
-            item = Instantiate(itemObject, columnQueues[pos.x].GetNextPosition(), quaternion.identity, itemParent.transform).GetComponent<Item>();
-            item.InitializeItem(pos);
+            item = ObjectPool.Instance.CreateItem(type, columnQueues[pos.x].GetNextPosition(), color);
+            item.transform.SetParent(itemParent.transform);
+            item.InitializeItemInBoard(pos);
         }
         
         return item;
@@ -192,14 +202,33 @@ public class Board : MonoBehaviour
         count -= columnQueues[x].Count();
         return count;
     }
-
+    
+    public void CheckBoardMatches()
+    {
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = size.y-1; y >= 0; y--)
+            {
+                Item item = items[y * size.x + x];
+                if (item == null)
+                {
+                    continue;
+                }
+                if (item.matchable)
+                {
+                    List<Item> matchedItems = CheckMatches(item.pos.x, item.pos.y);
+                    matchedItems.ForEach(theItem => theItem.UpdateMatches());
+                }
+            }
+        }
+    }
     public List<Item> CheckMatches(int startX, int startY)
     {
         List<Item> matches = new List<Item>();
         FindMatches(startX, startY, items[startY* size.x + startX].color, matches);
         return matches;
     }
-
+    
     private void FindMatches(int x, int y, ColorType color, List<Item> matches)
     {
         if (x < 0 || x >= size.x || y < 0 || y >= size.y)
@@ -224,9 +253,70 @@ public class Board : MonoBehaviour
         FindMatches(x, y-1, color, matches);
     }
 
+    public List<Item> AroundItems(Vector2Int itemPos)
+    {
+        List<Item> itemList = new List<Item>();
+        int leftIndex = CalculateIndex(itemPos.x - 1, itemPos.y);
+        int rightIndex = CalculateIndex(itemPos.x + 1, itemPos.y);
+        int topIndex = CalculateIndex(itemPos.x, itemPos.y + 1);
+        int bottomIndex = CalculateIndex(itemPos.x, itemPos.y - 1);
+
+        Item item;
+        if (IsInBoard(leftIndex))
+        {
+            item = items[leftIndex];
+            if (item != null)
+            {
+                itemList.Add(item);
+            }
+        }
+
+        if (IsInBoard(rightIndex))
+        {
+            item = items[rightIndex];
+            if (item != null)
+            {
+                itemList.Add(item);
+            }
+        }
+
+        if (IsInBoard(topIndex))
+        {
+            item = items[topIndex];
+            if (item != null)
+            {
+                itemList.Add(item);
+            }
+        }
+
+        if (IsInBoard(bottomIndex))
+        {
+            item = items[bottomIndex];
+            if (item != null)
+            {
+                itemList.Add(item);
+            }
+        }
+        return itemList;
+    }
+    
+    private int CalculateIndex(int x, int y)
+    {
+        return y * size.x + x;
+    }
+
     public bool IsInBoard(Vector2Int pos)
     {
         if (pos.x < 0 || pos.x >= size.x || pos.y < 0 || pos.y >= size.y)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public bool IsInBoard(int index)
+    {
+        if (index < 0 || index >= size.x * size.y)
         {
             return false;
         }
