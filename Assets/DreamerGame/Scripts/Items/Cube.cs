@@ -6,7 +6,7 @@ using UnityEngine;
 public class Cube : Item
 {
     [Header("Type Specific Attributes")]
-    [SerializeField] private int tntBonusRule = 4;
+    [SerializeField] private int tntBonusRule;
     public override void TouchBehaviour()
     {
         var items = Board.Instance.CheckMatches(pos.x, pos.y);
@@ -34,7 +34,7 @@ public class Cube : Item
 
     public override void BlastBehaviour(List<Item> items = null)
     {
-        DestroyItem();
+        DamageBehaviour();
         if (items == null)
         {
             return;
@@ -51,7 +51,7 @@ public class Cube : Item
 
     public override void ExplosionBehavior()
     {
-        DestroyItem();
+        DamageBehaviour();
     }
 
     public override void InitializeItemInBoard(Vector2Int initialPos)
@@ -62,7 +62,7 @@ public class Cube : Item
 
     private void UpdateSprite()
     {
-        if (matchCount >= 4)
+        if (matchCount >= tntBonusRule)
         {
             spriteRenderer.sprite = specialSpriteContainers.First(state => state.name.Equals("BombHint")).sprite;
         }

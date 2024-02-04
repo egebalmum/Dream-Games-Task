@@ -153,11 +153,12 @@ MonoBehaviour:
   destinationPos: {x: 0, y: 0}
   speed: 0
   matchCount: 1
+  activeState: 0
   OnMatchCountUpdated:
     m_PersistentCalls:
       m_Calls: []
   colorStorages: []
-  tntBonusRule: 4
+  tntBonusRule: 5
 --- !u!61 &861072346091355378
 BoxCollider2D:
   m_ObjectHideFlags: 0

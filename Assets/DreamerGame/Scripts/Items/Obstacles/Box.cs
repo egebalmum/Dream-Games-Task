@@ -2,15 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Box : Item
+public class Box : Obstacle
 {
     public override void NearBlastBehaviour()
     {
-        DestroyItem();
+        DamageBehaviour();
     }
 
     public override void ExplosionBehavior()
     {
-        DestroyItem();
+        DamageBehaviour();
     }
 }
