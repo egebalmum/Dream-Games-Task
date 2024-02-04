@@ -1,14 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening;
 using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
+
 public class Board : MonoBehaviour
 {
     public static Board Instance;
-    [SerializeField] public Vector2Int size; //Going to pull value from json
     [SerializeField] public float borderPadding;
     [SerializeField] private GameObject cellParent;
     [SerializeField] private GameObject itemParent;
@@ -19,6 +18,7 @@ public class Board : MonoBehaviour
     [HideInInspector] public Cell[] cells;
     [HideInInspector] public Item[] items;
     [HideInInspector] public ColumnQueue[] columnQueues;
+    [HideInInspector] public Vector2Int size;
     [HideInInspector] public Vector2 cellSize;
     private SpriteRenderer _borderSprite;
     private BorderAdjuster _borderAdjuster;
@@ -39,7 +39,7 @@ public class Board : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.A))
         {
-            ShuffleBoard();
+            StartCoroutine(ShuffleBoardCoroutine());
         }
     }
 
@@ -79,12 +79,18 @@ public class Board : MonoBehaviour
     
     private void InitializeLevel()
     {
+        size = new Vector2Int(LevelManager.Instance.levelData.grid_width, LevelManager.Instance.levelData.grid_height); 
         AdjustBorder();
         InitializePool();
         InitializeCells();
         InitializeItems();
         InitializeColumnQueues();
         CheckBoardMatches();
+        bool shuffleNeeded = TryShuffle();
+        if (!shuffleNeeded)
+        {
+            LevelManager.Instance.state = LevelState.Idle;
+        }
     }
     private void InitializeSingleton()
     {
@@ -117,7 +123,7 @@ public class Board : MonoBehaviour
     {
         cells = new Cell[size.x * size.y];
         Vector2 midPoint = transform.position;
-        Vector2 initialOffset = new Vector2((cellSize.x * size.x / 2) - (cellSize.x/2), (cellSize.y * size.y / 2) - (cellSize.y/2));
+        Vector2 initialOffset = new Vector2(-(cellSize.x * size.x / 2 - cellSize.x/2), (cellSize.y * size.y / 2) - (cellSize.y/2));
         Vector2 addedOffset = Vector2.zero;
         for (int y = 0; y < size.y; y++)
         {
@@ -126,7 +132,7 @@ public class Board : MonoBehaviour
                 Cell cell = Instantiate(cellPrefab, midPoint + initialOffset + addedOffset,quaternion.identity, cellParent.transform).GetComponent<Cell>();
                 cell.gameObject.name = "Cell" + "[" + x + "]" + "[" + y + "]";
                 cells[size.x * y + x] = cell;
-                addedOffset.x -= cellSize.x;
+                addedOffset.x += cellSize.x;
             }
             addedOffset.x = 0;
             addedOffset.y -= cellSize.y;
@@ -149,7 +155,48 @@ public class Board : MonoBehaviour
         {
             for (int y = size.y-1; y >= 0; y--)
             {
-                CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Random);
+                int index = CalculateIndex(x, y);
+                String str = LevelManager.Instance.levelData.grid[index];
+                if (str.Equals("t"))
+                {
+                    CreateNewItem(ItemType.TNT, new Vector2Int(x,y));
+                }
+                else if (str.Equals("v"))
+                {
+                    CreateNewItem(ItemType.Vase, new Vector2Int(x,y));
+                }
+                else if (str.Equals("s"))
+                {
+                    CreateNewItem(ItemType.Stone, new Vector2Int(x,y));
+                }
+                else if (str.Equals("bo"))
+                {
+                    CreateNewItem(ItemType.Box, new Vector2Int(x,y));
+                }
+                else if (str.Equals("r"))
+                {
+                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Red);
+                }
+                else if (str.Equals("y"))
+                {
+                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Yellow);
+                }
+                else if (str.Equals("g"))
+                {
+                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Green);
+                }
+                else if (str.Equals("b"))
+                {
+                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Blue);
+                }
+                else if (str.Equals("rand"))
+                {
+                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Random);
+                }
+                else
+                {
+                    Debug.LogError("Error on reading LevelData.grid");
+                }
             }
         }
     }
@@ -228,7 +275,8 @@ public class Board : MonoBehaviour
                 if (item.matchable)
                 {
                     List<Item> matchedItems = CheckMatches(item.pos.x, item.pos.y);
-                    matchedItems.ForEach(theItem => theItem.UpdateMatches());
+                    int matchCount = matchedItems.Count;
+                    matchedItems.ForEach(theItem => theItem.UpdateMatchCountUltra(matchCount));
                 }
             }
         }
@@ -311,8 +359,13 @@ public class Board : MonoBehaviour
         return itemList;
     }
     
-    private int CalculateIndex(int x, int y)
+    public int CalculateIndex(int x, int y)
     {
+        var pos = new Vector2Int(x, y);
+        if (!IsInBoard(pos))
+        {
+            return -1;
+        }
         return y * size.x + x;
     }
 
@@ -342,7 +395,8 @@ public class Board : MonoBehaviour
         {
             for (int y = size.y - 1; y >= 0; y--)
             {
-                if (items[CalculateIndex(x, y)].interactable)
+                Item item = items[CalculateIndex(x, y)];
+                if (item != null && items[CalculateIndex(x, y)].interactable)
                 {
                     return true;
                 }
@@ -351,27 +405,37 @@ public class Board : MonoBehaviour
 
         return false;
     }
-    private IEnumerator ShuffleBoard()
+    
+    private IEnumerator ShuffleBoardCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
-        int depth = 3;
+        int depth = 5;
         while (depth > 0)
         {
-            List<Item> itemList = new List<Item>();
-            for (int x = 0; x < size.x; x++)
+            int n = items.Length;
+            while (n > 1)
             {
-                for (int y = size.y - 1; y >= 0; y--)
-                {
-                    itemList.Add(items[CalculateIndex(x,y)]);
-                }
+                n--;
+                if (items[n] == null || items[n] is Obstacle)
+                    continue;
+
+                int k = Random.Range(0, n + 1);
+                if (items[k] == null || items[k] is Obstacle)
+                    continue;
+
+                Item temp = items[n];
+                items[n] = items[k];
+                items[k] = temp;
             }
-            itemList.Shuffle();
+            
             for (int x = 0; x < size.x; x++)
             {
                 for (int y = size.y - 1; y >= 0; y--)
                 {
-                    items[CalculateIndex(x, y)] = itemList[^1];
-                    itemList.Remove(itemList[^1]);
+                    if (items[CalculateIndex(x, y)] == null)
+                    {
+                        continue;
+                    }
                     items[CalculateIndex(x, y)].transform.position = cells[CalculateIndex(x, y)].transform.position;
                     items[CalculateIndex(x, y)].pos = new Vector2Int(x, y);
                 }
@@ -381,34 +445,36 @@ public class Board : MonoBehaviour
             {
                 break;
             }
-
             depth -= 1;
         }
-
         if (depth == 0)
         {
             Debug.LogError("CANNOT GENERATE MATCH");
         }
-        
+
+        LevelManager.Instance.state = LevelState.Idle;
+
     }
 
-    public void RegisterFallingObject(bool value)
+    public void RegisterFallingObject(int value)
     {
-        if (value)
-        {
-            _fallingObjectCount += 1;
-        }
-        else
-        {
-            _fallingObjectCount -= 1;
-        }
+        _fallingObjectCount += value;
 
         if (_fallingObjectCount == 0)
         {
-            if (!DoesMatchExist())
-            {
-                StartCoroutine(ShuffleBoard());
-            }
+            TryShuffle();
         }
+    }
+
+    public bool TryShuffle()
+    {
+        if (!DoesMatchExist() && LevelManager.Instance.state != LevelState.Shuffling)
+        {
+            LevelManager.Instance.state = LevelState.Shuffling;
+            StartCoroutine(ShuffleBoardCoroutine());
+            return true;
+        }
+
+        return false;
     }
 }

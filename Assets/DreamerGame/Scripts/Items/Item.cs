@@ -21,11 +21,12 @@ public abstract class Item : MonoBehaviour
    public ItemType type;
    [SerializeField] public ItemSprite.SpecialSpriteContainer[] specialSpriteContainers;
    [SerializeField] public ItemSprite.SpriteContainer[] spriteContainers;
-   [HideInInspector]public bool falling;
-   [HideInInspector]public Vector2Int pos;
-   [HideInInspector]public Vector2Int destinationPos;
-   [HideInInspector]public float speed;
-   [HideInInspector]public int matchCount = 1;
+   [HideInInspector] public bool falling;
+   [HideInInspector] public Vector2Int pos;
+   [HideInInspector] public Vector2Int destinationPos;
+   [HideInInspector] public float speed;
+   [HideInInspector] public int matchCount = 1;
+   [HideInInspector] public int activeState = 0;
    [HideInInspector] public UnityEvent OnMatchCountUpdated;
    [HideInInspector] public ColorStorage[] colorStorages;
    private Coroutine fallCoroutine;
@@ -70,11 +71,11 @@ public abstract class Item : MonoBehaviour
         }
         
         falling = true;
-        Board.Instance.RegisterFallingObject(true);
+        Board.Instance.RegisterFallingObject(1);
         
         if (matchable && Board.Instance.IsInBoard(pos))
         {
-            UpdateMatches();
+            UpdateMatchCountUltra(1);
             var items = Board.Instance.AroundItems(pos);
             items.ForEach(item => item.UpdateMatches());
         }
@@ -89,7 +90,7 @@ public abstract class Item : MonoBehaviour
         falling = false;
         speed = 0;
         UpdateMatches();
-        Board.Instance.RegisterFallingObject(false);
+        Board.Instance.RegisterFallingObject(-1);
     }
     
     IEnumerator FallCoroutine(Vector2Int nextStop)
@@ -99,7 +100,20 @@ public abstract class Item : MonoBehaviour
         {
             int currentIndex = CalculateIndex(pos.x, pos.y);
             int destinationIndex = CalculateIndex(destinationPos.x, destinationPos.y);
-            Item bottomItem = Board.Instance.items[destinationIndex];
+            
+            Item bottomItem;
+            if (!Board.Instance.IsInBoard(pos))
+            {
+                bottomItem = Board.Instance.columnQueues[pos.x].GetFrontItem(this);
+                if (bottomItem == null)
+                {
+                    bottomItem = Board.Instance.items[destinationIndex];
+                }
+            }
+            else
+            {
+                bottomItem = Board.Instance.items[destinationIndex];
+            }
             if (bottomItem != null)
             {
                 float distanceYBetween = transform.position.y - bottomItem.transform.position.y;
@@ -191,10 +205,9 @@ public abstract class Item : MonoBehaviour
 
     private int CalculateIndex(int x, int y)
     {
-        return y * Board.Instance.size.x + x;
+        return Board.Instance.CalculateIndex(x, y);
     }
-
-    public void DestroyItem()
+    protected void DestroyItem()
     {
         if (fallCoroutine != null)
         {
@@ -205,16 +218,34 @@ public abstract class Item : MonoBehaviour
         {
             speed = 0;
             falling = false;
-            Board.Instance.RegisterFallingObject(false);
+            Board.Instance.RegisterFallingObject(-1);
+        }
+        else
+        {
+            Board.Instance.RegisterFallingObject(0);
         }
         SetDestinationPos(invalidPos);
-        matchCount = 1;
+        UpdateMatchCountUltra(1);
         var items = Board.Instance.AroundItems(pos);
         items.ForEach(item => item.UpdateMatches());
         ObjectPool.Instance.DestroyItem(this);
+        spriteRenderer.sprite = spriteContainers[0].sprite;
     }
-    
 
+
+    public void UpdateMatchCountUltra(int value)
+    {
+        matchCount = value;
+        if (matchCount >= minMatchCount)
+        {
+            interactable = true;
+        }
+        else
+        {
+            interactable = false;
+        }
+        OnMatchCountUpdated?.Invoke();
+    }
     public void UpdateMatches()
     {
         if (matchable && Board.Instance.IsInBoard(pos))
@@ -222,37 +253,13 @@ public abstract class Item : MonoBehaviour
             List<Item> items = Board.Instance.CheckMatches(pos.x, pos.y);
             if (items.Count == 0)
             {
-                UpdateMatchCount();
+                UpdateMatchCountUltra(1);
                 return;
             }
-            items.ForEach(item => item.UpdateMatchCount());
-        }
-    }
 
-    private void UpdateMatchCount()
-    {
-        if (!matchable)
-        {
-            return;
+            int matchCount = items.Count;
+            items.ForEach(item => item.UpdateMatchCountUltra(matchCount));
         }
-
-        if (falling)
-        {
-            matchCount = 1;
-        }
-        else
-        {
-            matchCount = Board.Instance.CheckMatches(pos.x, pos.y).Count;
-            if (matchCount >= minMatchCount)
-            {
-                interactable = true;
-            }
-            else
-            {
-                interactable = false;
-            }
-        }
-        OnMatchCountUpdated?.Invoke();
     }
 
     public void SetColor(ColorType newColor)
@@ -267,7 +274,31 @@ public abstract class Item : MonoBehaviour
         color = storage.color;
         specialSpriteContainers = storage.specialStates;
         spriteContainers = storage.states;
-        spriteRenderer.sprite = spriteContainers[0].sprite;
+        spriteRenderer.sprite = spriteContainers[activeState].sprite;
     }
-   public abstract void TouchBehaviour();
+
+    public virtual void DamageBehaviour()
+    {
+        DestroyItem();
+    }
+
+    public virtual void TouchBehaviour()
+    {
+        //
+    }
+
+    public virtual void ExplosionBehavior()
+    {
+        //
+    }
+
+    public virtual void BlastBehaviour(List<Item> itemListFromCaller = null)
+    {
+        //
+    }
+
+    public virtual void NearBlastBehaviour()
+    {
+        //
+    }
 }

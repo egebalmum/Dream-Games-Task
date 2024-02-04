@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Stone : Item
+public class Stone : Obstacle
 {
-    public override void TouchBehaviour()
+    public override void ExplosionBehavior()
     {
-        throw new System.NotImplementedException();
+        DamageBehaviour();
     }
 }

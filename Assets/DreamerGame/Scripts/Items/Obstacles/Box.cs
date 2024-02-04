@@ -2,10 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Box : Item
+public class Box : Obstacle
 {
-    public override void TouchBehaviour()
+    public override void NearBlastBehaviour()
     {
-        throw new System.NotImplementedException();
+        DamageBehaviour();
+    }
+
+    public override void ExplosionBehavior()
+    {
+        DamageBehaviour();
     }
 }

@@ -36,4 +36,15 @@ public class ColumnQueue
     {
         return _queue.Count;
     }
+
+    public Item GetFrontItem(Item item)
+    {
+        int index = _queue.IndexOf(item);
+        if (index == 0)
+        {
+            return null;
+        }
+
+        return _queue[index - 1];
+    }
 }
