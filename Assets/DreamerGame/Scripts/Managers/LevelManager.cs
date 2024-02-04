@@ -13,9 +13,11 @@ public class LevelManager : MonoBehaviour
     public float fallStopThreshold = 0.02f;
     public SpeedTransferType speedTransferType = SpeedTransferType.TopToBottom;
     [HideInInspector] public LevelData levelData;
-
+    
     [Header("Level Settings")] public Goal[] goals;
     [HideInInspector] public LevelState state = LevelState.Loading;
+
+    private HashSet<Item> markedItems = new HashSet<Item>();
     
     private void Awake()
     {
@@ -33,7 +35,23 @@ public class LevelManager : MonoBehaviour
         Instance = this;
     }
 
+    public void TouchEvent(Item touchedItem)
+    {
+        if (touchedItem.falling)
+        {
+            return;
+        }
+        TouchEventCoroutine(touchedItem);
+        //StartCoroutine(TouchEventCoroutine(touchedItem));
+    }
 
+    public void TouchEventCoroutine(Item touchedItem)
+    {
+        touchedItem.TouchBehaviour(markedItems);
+        markedItems.Clear();
+        Board.Instance.AfterTouchLoop();
+    }
+    
     private void LoadLevelData()
     {
         levelData = LevelReader.LoadLevel(currentLevel);

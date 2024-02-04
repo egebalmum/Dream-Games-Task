@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Stone : Obstacle
 {
-    public override void ExplosionBehavior()
+    public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
-        DamageBehaviour();
+        GetDamage();
     }
 }

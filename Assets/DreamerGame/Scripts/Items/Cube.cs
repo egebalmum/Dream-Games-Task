@@ -7,23 +7,19 @@ public class Cube : Item
 {
     [Header("Type Specific Attributes")]
     [SerializeField] private int tntBonusRule;
-    public override void TouchBehaviour()
+    public override void TouchBehaviour(HashSet<Item> markedItems)
     {
+        base.TouchBehaviour(markedItems);
+        
         var items = Board.Instance.CheckMatches(pos.x, pos.y);
         if (items.Count < minMatchCount)
         {
             return;
         }
-
-        List<Item> nearBlastItems = new List<Item>();
+        
         foreach (var item in items)
         {
-            item.BlastBehaviour(nearBlastItems);
-        }
-
-        foreach (var nearItem in nearBlastItems)
-        {
-            nearItem.NearBlastBehaviour();
+            item.BlastBehaviour(markedItems);
         }
 
         if (items.Count >= tntBonusRule)
@@ -32,26 +28,21 @@ public class Cube : Item
         }
     }
 
-    public override void BlastBehaviour(List<Item> items = null)
+    public override void BlastBehaviour(HashSet<Item> markedItems)
     {
-        DamageBehaviour();
-        if (items == null)
-        {
-            return;
-        }
+        base.BlastBehaviour(markedItems);
+        GetDamage();
         var aroundItems = Board.Instance.AroundItems(pos);
         foreach (var aroundItem in aroundItems)
         {
-            if (!items.Contains(aroundItem))
-            {
-                items.Add(aroundItem);
-            }
+            aroundItem.NearBlastBehaviour(markedItems);
         }
     }
 
-    public override void ExplosionBehavior()
+    public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
-        DamageBehaviour();
+        base.ExplosionBehavior(markedItems);
+        GetDamage();
     }
 
     public override void InitializeItemInBoard(Vector2Int initialPos)

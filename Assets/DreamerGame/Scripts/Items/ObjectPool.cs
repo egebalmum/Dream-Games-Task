@@ -46,6 +46,7 @@ public class ObjectPool : MonoBehaviour
         Item item = itemPool.FirstOrDefault(item => item.type == type);
         if (item == null)
         {
+            print("Instantiated Object");
             var poolableObject= _poolableObjects.First(poolableObject => poolableObject.type == type);
             item = Instantiate(poolableObject.prefab, Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
             item.InitializeItem();

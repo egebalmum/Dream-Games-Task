@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class Box : Obstacle
 {
-    public override void NearBlastBehaviour()
+    public override void NearBlastBehaviour(HashSet<Item> markedItems)
     {
-        DamageBehaviour();
+        GetDamage();
     }
 
-    public override void ExplosionBehavior()
+    public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
-        DamageBehaviour();
+        GetDamage();
     }
 }

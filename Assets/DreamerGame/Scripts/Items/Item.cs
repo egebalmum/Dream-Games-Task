@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 public abstract class Item : MonoBehaviour
-{ 
+{
     [Header("Components")]
    public SpriteRenderer spriteRenderer;
    public BoxCollider2D boxCollider;
@@ -21,10 +21,10 @@ public abstract class Item : MonoBehaviour
    public ItemType type;
    [SerializeField] public ItemSprite.SpecialSpriteContainer[] specialSpriteContainers;
    [SerializeField] public ItemSprite.SpriteContainer[] spriteContainers;
-   [HideInInspector] public bool falling;
    [HideInInspector] public Vector2Int pos;
    [HideInInspector] public Vector2Int destinationPos;
    [HideInInspector] public float speed;
+   [HideInInspector] public bool falling;
    [HideInInspector] public int matchCount = 1;
    [HideInInspector] public int activeState = 0;
    [HideInInspector] public UnityEvent OnMatchCountUpdated;
@@ -41,7 +41,7 @@ public abstract class Item : MonoBehaviour
          //Play feedback animation in coroutine
          return;
       }
-      Board.Instance.TouchItem(this);
+      LevelManager.Instance.TouchEvent(this);
    }
 
    public void InitializeItem()
@@ -75,7 +75,7 @@ public abstract class Item : MonoBehaviour
         
         if (matchable && Board.Instance.IsInBoard(pos))
         {
-            UpdateMatchCountUltra(1);
+            UpdateMatchCount(1);
             var items = Board.Instance.AroundItems(pos);
             items.ForEach(item => item.UpdateMatches());
         }
@@ -96,7 +96,7 @@ public abstract class Item : MonoBehaviour
     IEnumerator FallCoroutine(Vector2Int nextStop)
     {
         SetDestinationPos(nextStop);
-        while (true)
+        while (falling)
         {
             int currentIndex = CalculateIndex(pos.x, pos.y);
             int destinationIndex = CalculateIndex(destinationPos.x, destinationPos.y);
@@ -207,7 +207,7 @@ public abstract class Item : MonoBehaviour
     {
         return Board.Instance.CalculateIndex(x, y);
     }
-    protected void DestroyItem()
+    private void DestroyItem()
     {
         if (fallCoroutine != null)
         {
@@ -222,10 +222,10 @@ public abstract class Item : MonoBehaviour
         }
         else
         {
-            Board.Instance.RegisterFallingObject(0);
+            //Board.Instance.RegisterFallingObject(0);
         }
         SetDestinationPos(invalidPos);
-        UpdateMatchCountUltra(1);
+        UpdateMatchCount(1);
         var items = Board.Instance.AroundItems(pos);
         items.ForEach(item => item.UpdateMatches());
         ObjectPool.Instance.DestroyItem(this);
@@ -233,7 +233,7 @@ public abstract class Item : MonoBehaviour
     }
 
 
-    public void UpdateMatchCountUltra(int value)
+    public void UpdateMatchCount(int value)
     {
         matchCount = value;
         if (matchCount >= minMatchCount)
@@ -253,12 +253,12 @@ public abstract class Item : MonoBehaviour
             List<Item> items = Board.Instance.CheckMatches(pos.x, pos.y);
             if (items.Count == 0)
             {
-                UpdateMatchCountUltra(1);
+                UpdateMatchCount(1);
                 return;
             }
 
             int matchCount = items.Count;
-            items.ForEach(item => item.UpdateMatchCountUltra(matchCount));
+            items.ForEach(item => item.UpdateMatchCount(matchCount));
         }
     }
 
@@ -277,28 +277,52 @@ public abstract class Item : MonoBehaviour
         spriteRenderer.sprite = spriteContainers[activeState].sprite;
     }
 
-    public virtual void DamageBehaviour()
+    public virtual void GetDamage()
     {
         DestroyItem();
     }
 
-    public virtual void TouchBehaviour()
+    public virtual void TouchBehaviour(HashSet<Item> markedItems)
     {
+        if (markedItems.Contains(this))
+        {
+            return;
+        }
+
+        markedItems.Add(this);
         //
     }
 
-    public virtual void ExplosionBehavior()
+    public virtual void ExplosionBehavior(HashSet<Item> markedItems)
     {
+        if (markedItems.Contains(this))
+        {
+            return;
+        }
+
+        markedItems.Add(this);
         //
     }
 
-    public virtual void BlastBehaviour(List<Item> itemListFromCaller = null)
+    public virtual void BlastBehaviour(HashSet<Item> markedItems)
     {
+        if (markedItems.Contains(this))
+        {
+            return;
+        }
+
+        markedItems.Add(this);
         //
     }
 
-    public virtual void NearBlastBehaviour()
+    public virtual void NearBlastBehaviour(HashSet<Item> markedItems)
     {
+        if (markedItems.Contains(this))
+        {
+            return;
+        }
+
+        markedItems.Add(this);
         //
     }
 }

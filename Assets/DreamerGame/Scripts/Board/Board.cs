@@ -35,26 +35,13 @@ public class Board : MonoBehaviour
         InitializeLevel();
     }
 
-    private void Update()
+    public void AfterTouchLoop()
     {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            StartCoroutine(ShuffleBoardCoroutine());
-        }
-    }
-
-    public void TouchItem(Item item)
-    {
-        if (item.falling)
-        {
-            return;
-        }
-        item.TouchBehaviour();
         //CheckBoardMatches();
         FallItems();
         CreateNewItems();
     }
-    private void FallItems()
+    public void FallItems()
     {
         for (int x = 0; x < size.x; x++)
         {
@@ -276,7 +263,7 @@ public class Board : MonoBehaviour
                 {
                     List<Item> matchedItems = CheckMatches(item.pos.x, item.pos.y);
                     int matchCount = matchedItems.Count;
-                    matchedItems.ForEach(theItem => theItem.UpdateMatchCountUltra(matchCount));
+                    matchedItems.ForEach(theItem => theItem.UpdateMatchCount(matchCount));
                 }
             }
         }
@@ -443,6 +430,7 @@ public class Board : MonoBehaviour
             CheckBoardMatches();
             if (DoesMatchExist())
             {
+                print("Board shuffled");
                 break;
             }
             depth -= 1;

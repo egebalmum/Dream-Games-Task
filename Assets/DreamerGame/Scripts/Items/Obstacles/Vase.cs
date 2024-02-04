@@ -6,22 +6,24 @@ public class Vase : Obstacle
 {
     [Header("Type Specific Attributes")] [SerializeField]
     private int lives = 2;
-    public override void ExplosionBehavior()
+    public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
-        DamageBehaviour();
+        base.ExplosionBehavior(markedItems);
+        GetDamage();
     }
 
-    public override void NearBlastBehaviour()
+    public override void NearBlastBehaviour(HashSet<Item> markedItems)
     {
-        DamageBehaviour();
+        base.NearBlastBehaviour(markedItems);
+        GetDamage();
     }
 
-    public override void DamageBehaviour()
+    public override void GetDamage()
     {
         lives -= 1;
         if (lives == 0)
         {
-            base.DamageBehaviour();
+            base.GetDamage();
             lives = 2;
         }
         else
