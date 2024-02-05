@@ -13,13 +13,13 @@ public class BorderAdjuster
     private readonly SpriteRenderer _borderSprite;
     private readonly Transform _transform;
 
-    public BorderAdjuster(Transform transform, Vector2Int size, RectTransform boardBorderRect, SpriteRenderer borderSprite, float borderPadding, GameObject defaultItem, Vector2 cellSize, Camera activeCamera)
+    public BorderAdjuster(Transform transform, Vector2Int size, RectTransform boardBorderRect, SpriteRenderer borderSprite, float borderPadding, Vector2 cellSize, Camera activeCamera)
     {
         _transform = transform;
         _boardBorderRect = boardBorderRect;
         _cellSize = cellSize;
         _borderPadding = borderPadding;
-        _shadedFaceLength = defaultItem.GetComponent<Item>().spriteRenderer.size.y - cellSize.y;
+        _shadedFaceLength = ItemFactory.Instance.GetItem(ItemType.Cube).GetComponent<Item>().spriteRenderer.size.y - cellSize.y;
         _activeCamera = activeCamera;
         _size = size;
         _borderSprite = borderSprite;

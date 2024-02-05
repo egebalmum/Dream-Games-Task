@@ -10,7 +10,6 @@ public class PoolSettings : ScriptableObject
     {
         [SerializeField] public ItemType type;
         [SerializeField] public int amount;
-        [SerializeField] public GameObject prefab;
     }
 
     [SerializeField]

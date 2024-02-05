@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19d386f79b293ff4783507fce658d67f, type: 3}
+  m_Name: JsonTypeConverter
+  m_EditorClassIdentifier: 
+  jsonTypes:
+  - input:
+      entry: r
+    output:
+      type: 0
+      color: 2
+  - input:
+      entry: y
+    output:
+      type: 0
+      color: 3
+  - input:
+      entry: g
+    output:
+      type: 0
+      color: 4
+  - input:
+      entry: b
+    output:
+      type: 0
+      color: 5
+  - input:
+      entry: rand
+    output:
+      type: 0
+      color: 1
+  - input:
+      entry: t
+    output:
+      type: 1
+      color: 0
+  - input:
+      entry: bo
+    output:
+      type: 2
+      color: 0
+  - input:
+      entry: s
+    output:
+      type: 3
+      color: 0
+  - input:
+      entry: v
+    output:
+      type: 4
+      color: 0

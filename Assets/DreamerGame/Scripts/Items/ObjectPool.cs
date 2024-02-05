@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class ObjectPool : MonoBehaviour
 {
@@ -14,7 +13,7 @@ public class ObjectPool : MonoBehaviour
     private void Awake()
     {
         InitializeSingleton();
-        _poolableObjects = Resources.Load<PoolSettings>("PoolSystem/PoolSettings").poolableObjects;
+        _poolableObjects = Resources.Load<PoolSettings>("PoolSettings").poolableObjects;
     }
     
     private void InitializeSingleton()
@@ -33,7 +32,7 @@ public class ObjectPool : MonoBehaviour
             int amount = poolableObject.amount;
             for (int i = 0; i < amount; i++)
             {
-                Item item = Instantiate(poolableObject.prefab, Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
+                Item item = Instantiate(ItemFactory.Instance.GetItem(poolableObject.type), Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
                 item.transform.parent = parent;
                 item.InitializeItem();
                 itemPool.Add(item); 
@@ -48,37 +47,18 @@ public class ObjectPool : MonoBehaviour
         {
             print("Instantiated Object");
             var poolableObject= _poolableObjects.First(poolableObject => poolableObject.type == type);
-            item = Instantiate(poolableObject.prefab, Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
+            item = Instantiate(ItemFactory.Instance.GetItem(poolableObject.type), Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
             item.InitializeItem();
         }
         item.transform.position = position;
-        SetItemColor(item, color);
+        item.SetColor(color);
         itemPool.Remove(item);
         return item;
-    }
-
-    public void SetItemColor(Item item, ColorType color)
-    {
-        if (color == ColorType.NoColor)
-        {
-            return;
-        }
-
-        if (color == ColorType.Random)
-        {
-            var colorCount = item.colorStorages.Length;
-            var randomColor = Random.Range(0, colorCount);
-            item.SetColor(item.colorStorages[randomColor].color);
-            return;
-        }
-        item.SetColor(color);
-        
     }
 
     public void DestroyItem(Item item)
     {
         item.transform.position = Vector3.up * 1000;
         itemPool.Add(item);
-        return;
     }
 }

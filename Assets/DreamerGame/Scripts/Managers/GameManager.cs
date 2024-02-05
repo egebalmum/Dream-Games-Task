@@ -6,6 +6,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+    [Header("Game Settings")]
+    public float acceleration = 9.81f;
+    public float speedLimit = 50f;
+    public float fallStopThreshold = 0.02f;
+    public SpeedTransferType speedTransferType = SpeedTransferType.TopToBottom;
     private void Awake()
     {
         InitializeSingleton();

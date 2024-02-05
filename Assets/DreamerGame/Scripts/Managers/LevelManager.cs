@@ -6,18 +6,13 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance;
-    [Header("Game Settings")] 
-    public string currentLevel;
-    public float acceleration = 9.81f;
-    public float speedLimit = 50f;
-    public float fallStopThreshold = 0.02f;
-    public SpeedTransferType speedTransferType = SpeedTransferType.TopToBottom;
-    [HideInInspector] public LevelData levelData;
     
-    [Header("Level Settings")] public Goal[] goals;
+    public string currentLevel;
+    [HideInInspector] public LevelData levelData;
     [HideInInspector] public LevelState state = LevelState.Loading;
-
-    private HashSet<Item> markedItems = new HashSet<Item>();
+    private HashSet<Item> _markedItems = new HashSet<Item>();
+    private Goal[] _goals;
+    private LevelReader _levelReader;
     
     private void Awake()
     {
@@ -47,15 +42,21 @@ public class LevelManager : MonoBehaviour
 
     public void TouchEventCoroutine(Item touchedItem)
     {
-        touchedItem.TouchBehaviour(markedItems);
-        markedItems.Clear();
+        touchedItem.TouchBehaviour(_markedItems);
+        _markedItems.Clear();
         Board.Instance.AfterTouchLoop();
     }
     
     private void LoadLevelData()
     {
-        levelData = LevelReader.LoadLevel(currentLevel);
+        _levelReader = new LevelReader();
+        levelData = _levelReader.LoadLevel(currentLevel);
         ArrangeArray(levelData.grid);
+    }
+
+    public JsonTypeConverter.JsonType.JsonOutput GetTypes(int index)
+    {
+        return _levelReader.GetTypes(levelData.grid[index]);
     }
 
     private void ArrangeArray(string[] array)

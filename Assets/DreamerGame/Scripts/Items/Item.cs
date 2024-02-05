@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using Random = UnityEngine.Random;
 
 public abstract class Item : MonoBehaviour
 {
@@ -138,7 +139,7 @@ public abstract class Item : MonoBehaviour
                 SetDestinationPos(nextStop);
                 Board.Instance.FallItemsInColumn(pos.x);
             }
-            speed = Mathf.Min(speed + LevelManager.Instance.acceleration * Time.deltaTime, LevelManager.Instance.speedLimit);
+            speed = Mathf.Min(speed + GameManager.Instance.acceleration * Time.deltaTime, GameManager.Instance.speedLimit);
             transform.position += -Vector3.up * (speed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
@@ -146,12 +147,12 @@ public abstract class Item : MonoBehaviour
 
         void AdjustItemOnHit(Item bottomItem)
         {
-            if (LevelManager.Instance.speedTransferType == SpeedTransferType.TopToBottom)
+            if (GameManager.Instance.speedTransferType == SpeedTransferType.TopToBottom)
             {
                 speed = bottomItem.speed;
                 transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
             }
-            else if (LevelManager.Instance.speedTransferType == SpeedTransferType.BottomToTop)
+            else if (GameManager.Instance.speedTransferType == SpeedTransferType.BottomToTop)
             {
                 bottomItem.speed = speed;
                 transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
@@ -160,7 +161,7 @@ public abstract class Item : MonoBehaviour
         bool IsReachedDestination(int destinationIndex)
         {
             float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
-            return distanceY <= LevelManager.Instance.fallStopThreshold;
+            return distanceY <= GameManager.Instance.fallStopThreshold;
         }
         bool UpdatePosition(int destinationIndex, int currentIndex)
         {
@@ -264,12 +265,19 @@ public abstract class Item : MonoBehaviour
 
     public void SetColor(ColorType newColor)
     {
-        if (colorStorages == null)
+        if (colorStorages.Length == 0)
         {
-            Debug.LogError("Item is not colored");
+            Debug.Log("Item is not colored");
             return;
         }
-
+        
+        if (newColor == ColorType.Random)
+        {
+            var colors = Enum.GetValues(typeof(ColorType));
+            int selectedIndex = Random.Range(2, colors.Length);
+            newColor = (ColorType) colors.GetValue(selectedIndex);
+            
+        }
         var storage = colorStorages.First(storage => storage.color == newColor);
         color = storage.color;
         specialSpriteContainers = storage.specialStates;

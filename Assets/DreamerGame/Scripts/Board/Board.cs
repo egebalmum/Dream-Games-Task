@@ -13,7 +13,6 @@ public class Board : MonoBehaviour
     [SerializeField] private GameObject itemParent;
     [SerializeField] private GameObject cellPrefab;
     [SerializeField] private Camera activeCamera;
-    [SerializeField] private GameObject defaultItemPrefab;
     [SerializeField] private RectTransform boardBorderRect;
     [HideInInspector] public Cell[] cells;
     [HideInInspector] public Item[] items;
@@ -91,8 +90,7 @@ public class Board : MonoBehaviour
     private void InitializeComponents()
     {
         _borderSprite = GetComponent<SpriteRenderer>();
-        Item defaultItem = defaultItemPrefab.GetComponent<Item>();
-        cellSize = defaultItem.boxCollider.size;
+        cellSize = ItemFactory.Instance.GetItem(ItemType.Cube).GetComponent<Item>().boxCollider.size;
     }
 
     private void InitializePool()
@@ -102,8 +100,7 @@ public class Board : MonoBehaviour
     
     private void AdjustBorder()
     {
-        _borderAdjuster = new BorderAdjuster(transform, size, boardBorderRect, _borderSprite, borderPadding,
-            defaultItemPrefab, cellSize, activeCamera);
+        _borderAdjuster = new BorderAdjuster(transform, size, boardBorderRect, _borderSprite, borderPadding, cellSize, activeCamera);
         _borderAdjuster.Adjust();
     }
     private void InitializeCells()
@@ -143,47 +140,8 @@ public class Board : MonoBehaviour
             for (int y = size.y-1; y >= 0; y--)
             {
                 int index = CalculateIndex(x, y);
-                String str = LevelManager.Instance.levelData.grid[index];
-                if (str.Equals("t"))
-                {
-                    CreateNewItem(ItemType.TNT, new Vector2Int(x,y));
-                }
-                else if (str.Equals("v"))
-                {
-                    CreateNewItem(ItemType.Vase, new Vector2Int(x,y));
-                }
-                else if (str.Equals("s"))
-                {
-                    CreateNewItem(ItemType.Stone, new Vector2Int(x,y));
-                }
-                else if (str.Equals("bo"))
-                {
-                    CreateNewItem(ItemType.Box, new Vector2Int(x,y));
-                }
-                else if (str.Equals("r"))
-                {
-                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Red);
-                }
-                else if (str.Equals("y"))
-                {
-                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Yellow);
-                }
-                else if (str.Equals("g"))
-                {
-                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Green);
-                }
-                else if (str.Equals("b"))
-                {
-                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Blue);
-                }
-                else if (str.Equals("rand"))
-                {
-                    CreateNewItem(ItemType.Cube, new Vector2Int(x,y), ColorType.Random);
-                }
-                else
-                {
-                    Debug.LogError("Error on reading LevelData.grid");
-                }
+                var output = LevelManager.Instance.GetTypes(index);
+                CreateNewItem(output.type, new Vector2Int(x, y), output.color);
             }
         }
     }
