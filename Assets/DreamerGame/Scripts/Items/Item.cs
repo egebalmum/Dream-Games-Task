@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public abstract class Item : MonoBehaviour
@@ -16,23 +17,20 @@ public abstract class Item : MonoBehaviour
    public bool fallable;
    public bool matchable;
    public int minMatchCount;
-   public ColorType color;
    public ItemType type;
+   public ColorType color;
    [HideInInspector] public bool interactable;
-   [SerializeField] public ItemSprite.SpecialSpriteContainer[] specialSpriteContainers;
-   [SerializeField] public ItemSprite.SpriteContainer[] spriteContainers;
+   [HideInInspector] public ItemSprite itemSprite;
    [HideInInspector] public Vector2Int pos;
    [HideInInspector] public Vector2Int destinationPos;
    [HideInInspector] public float speed;
    [HideInInspector] public bool falling;
    [HideInInspector] public int matchCount = 1;
-   [HideInInspector] public int activeState = 0;
+   [HideInInspector] public int activeState;
    [HideInInspector] public UnityEvent OnMatchCountUpdated;
-   [HideInInspector] public ColorStorage[] colorStorages;
-   private Coroutine fallCoroutine;
    
-   
-   private readonly Vector2Int invalidPos = new Vector2Int(-1, -1);
+   private Coroutine _fallCoroutine;
+   private readonly Vector2Int _invalidPos = new Vector2Int(-1, -1);
    
    private void OnMouseDown()
    {
@@ -43,11 +41,7 @@ public abstract class Item : MonoBehaviour
       }
       LevelManager.Instance.TouchEvent(this);
    }
-
-   public void InitializeItem()
-   {
-       colorStorages = GetComponents<ColorStorage>();
-   }
+   
    public virtual void InitializeItemInBoard(Vector2Int initialPos)
    {
        if (Board.Instance.IsInBoard(initialPos))
@@ -59,13 +53,13 @@ public abstract class Item : MonoBehaviour
            Board.Instance.columnQueues[initialPos.x].Enqueue(this);
        }
        pos = initialPos;
-       destinationPos = invalidPos;
+       destinationPos = _invalidPos;
    }
    
     public bool Fall()
     {
         Vector2Int nextStop = GetNextStop();
-        if (nextStop == invalidPos)
+        if (nextStop == _invalidPos)
         {
             return false;
         }
@@ -79,13 +73,13 @@ public abstract class Item : MonoBehaviour
             var items = Board.Instance.AroundItems(pos);
             items.ForEach(item => item.UpdateMatches());
         }
-        fallCoroutine = StartCoroutine(FallCoroutine(nextStop));
+        _fallCoroutine = StartCoroutine(FallCoroutine(nextStop));
         return true;
     }
 
     private void StopFall()
     {
-        SetDestinationPos(invalidPos);
+        SetDestinationPos(_invalidPos);
         
         falling = false;
         speed = 0;
@@ -131,7 +125,7 @@ public abstract class Item : MonoBehaviour
                     UpdatePosition(destinationIndex, currentIndex);
                 }
                 nextStop = GetNextStop();
-                if (nextStop == invalidPos)
+                if (nextStop == _invalidPos)
                 {
                     break;
                 }
@@ -177,7 +171,7 @@ public abstract class Item : MonoBehaviour
                 Board.Instance.items[destinationIndex] = this;
                 transform.position = Board.Instance.cells[destinationIndex].transform.position;
                 pos = destinationPos;
-                SetDestinationPos(invalidPos);
+                SetDestinationPos(_invalidPos);
                 return true;
             }
             return false;
@@ -188,17 +182,17 @@ public abstract class Item : MonoBehaviour
     {
         Vector2Int nextStop = new Vector2Int(pos.x, pos.y + 1);
         if (!Board.Instance.IsInBoard(nextStop)) 
-            return invalidPos;
+            return _invalidPos;
     
         int bottomIndex = CalculateIndex(nextStop.x, nextStop.y);
         Item bottomItem = Board.Instance.items[bottomIndex];
 
         if (bottomItem == null || (bottomItem.falling && bottomItem.destinationPos != bottomItem.pos))
             return nextStop;
-        return invalidPos;
+        return _invalidPos;
     }
 
-    public void SetDestinationPos(Vector2Int newDestinationPos)
+    private void SetDestinationPos(Vector2Int newDestinationPos)
     {
         destinationPos = newDestinationPos;
     }
@@ -209,9 +203,9 @@ public abstract class Item : MonoBehaviour
     }
     private void DestroyItem()
     {
-        if (fallCoroutine != null)
+        if (_fallCoroutine != null)
         {
-            StopCoroutine(fallCoroutine);
+            StopCoroutine(_fallCoroutine);
         }
         Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
         if (falling)
@@ -220,13 +214,12 @@ public abstract class Item : MonoBehaviour
             falling = false;
             Board.Instance.RegisterFallingObject(-1);
         }
-        SetDestinationPos(invalidPos);
+        SetDestinationPos(_invalidPos);
         UpdateMatchCount(1);
         var items = Board.Instance.AroundItems(pos);
         items.ForEach(item => item.UpdateMatches());
         LevelManager.Instance.DecrementGoal((type, color));
         ObjectPool.Instance.DestroyItem(this);
-        spriteRenderer.sprite = spriteContainers[0].sprite;
     }
 
 
@@ -243,7 +236,7 @@ public abstract class Item : MonoBehaviour
         }
         OnMatchCountUpdated?.Invoke();
     }
-    public void UpdateMatches()
+    private void UpdateMatches()
     {
         if (matchable && Board.Instance.IsInBoard(pos))
         {
@@ -254,39 +247,25 @@ public abstract class Item : MonoBehaviour
                 return;
             }
 
-            int matchCount = items.Count;
-            items.ForEach(item => item.UpdateMatchCount(matchCount));
+            int matchedItemCount = items.Count;
+            items.ForEach(item => item.UpdateMatchCount(matchedItemCount));
         }
     }
 
     public void SetColor(ColorType newColor)
     {
-        if (colorStorages.Length == 0)
-        {
-            Debug.Log("Item is not colored");
-            return;
-        }
-        
-        if (newColor == ColorType.Random)
-        {
-            var colors = Enum.GetValues(typeof(ColorType));
-            int selectedIndex = Random.Range(2, colors.Length);
-            newColor = (ColorType) colors.GetValue(selectedIndex);
-            
-        }
-        var storage = colorStorages.First(storage => storage.color == newColor);
-        color = storage.color;
-        specialSpriteContainers = storage.specialStates;
-        spriteContainers = storage.states;
-        spriteRenderer.sprite = spriteContainers[activeState].sprite;
+        ColorVariance variance = ItemFactory.Instance.GetColorVariance(type, newColor);
+        itemSprite = variance.itemSprite;
+        color = variance.color;
+        spriteRenderer.sprite = itemSprite.sprites[activeState].sprite;
     }
 
-    public virtual void GetDamage()
+    protected virtual void GetDamage()
     {
         DestroyItem();
     }
 
-    public bool IsMarked(HashSet<Item> markedItems)
+    protected bool IsMarked(HashSet<Item> markedItems)
     {
         if (markedItems.Contains(this))
         {

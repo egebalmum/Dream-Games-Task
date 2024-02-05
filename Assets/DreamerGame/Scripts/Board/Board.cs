@@ -44,7 +44,7 @@ public class Board : MonoBehaviour
             TryShuffle();
         }
     }
-    public void FallItems()
+    private void FallItems()
     {
         for (int x = 0; x < size.x; x++)
         {
@@ -164,7 +164,7 @@ public class Board : MonoBehaviour
             int fallableCellCount = GetEmptyCellCountInColumn(x);
             for (int index = 0; index < fallableCellCount; index++)
             {
-                createdItems.Add(CreateNewItem(ItemType.Cube, new Vector2Int(x,-1), ColorType.Random));
+                createdItems.Add(CreateNewItem(ItemType.Cube, new Vector2Int(x,-1)));
             }
         }
         FallNewItems(createdItems);
@@ -179,7 +179,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public Item CreateNewItem(ItemType type, Vector2Int pos, ColorType color = ColorType.NoColor)
+    public Item CreateNewItem(ItemType type, Vector2Int pos, ColorType color = ColorType.Random)
     {
         Item item;
         if (IsInBoard(pos))

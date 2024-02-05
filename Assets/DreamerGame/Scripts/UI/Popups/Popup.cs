@@ -13,12 +13,12 @@ public class Popup : MonoBehaviour
         Hide();
     }
 
-    public virtual void Hide()
+    private void Hide()
     {
         gameObject.SetActive(false);
     }
 
-    public virtual void Show()
+    public void Show()
     {
         gameObject.SetActive(true);
         if (closeButton != null)

@@ -6,16 +6,14 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Image = UnityEngine.UI.Image;
 
-public class GoalEntityUI : MonoBehaviour
+public class GoalEntityView : MonoBehaviour
 {
-    public (ItemType type, ColorType color) goalIdentity;
     public Image image;
     public Image checkImage;
     public TextMeshProUGUI textMesh;
     
-    public void SetGoalEntityUI((ItemType, ColorType) identity, Sprite sprite, int amount)
+    public void SetGoalEntityUI(Sprite sprite, int amount)
     {
-        goalIdentity = identity;
         image.sprite = sprite;
         textMesh.text = amount.ToString();
     }

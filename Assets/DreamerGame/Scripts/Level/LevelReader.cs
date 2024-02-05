@@ -4,11 +4,8 @@ using UnityEngine;
 
 public class LevelReader
 {
-    private JsonTypeConverter typeConverter;
-    public LevelReader()
-    {
-        typeConverter = Resources.Load<JsonTypeConverter>("JsonTypeConverter");
-    }
+    private readonly JsonTypeConverter _typeConverter = Resources.Load<JsonTypeConverter>("JsonTypeConverter");
+   
     public LevelData LoadLevel(string levelName)
     {
         TextAsset levelFile = Resources.Load<TextAsset>($"Levels/{levelName}");
@@ -23,6 +20,6 @@ public class LevelReader
 
     public JsonTypeConverter.JsonType.JsonOutput GetTypes(string str)
     {
-        return typeConverter.GetOutput(str);
+        return _typeConverter.GetOutput(str);
     }
 }

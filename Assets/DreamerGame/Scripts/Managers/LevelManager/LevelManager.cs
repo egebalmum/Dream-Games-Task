@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
@@ -129,7 +128,7 @@ public class LevelManager : MonoBehaviour
     {
         foreach (var item in items)
         {
-            if (item is Obstacle)
+            if (item.type == ItemType.Box || item.type == ItemType.Stone || item.type == ItemType.Vase)
             {
                 if (_goals.Any(goal => goal.goalIdentity == (item.type, item.color)))
                 {
@@ -151,10 +150,10 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    public GoalEntityUI CreateGoalEntityUI((ItemType type, ColorType color) identity)
+    public GoalEntityView CreateGoalEntityUI((ItemType type, ColorType color) identity)
     {
-        var goalEntityUI = Instantiate(goalEntityUIPrefab, Vector3.zero, quaternion.identity).GetComponent<GoalEntityUI>();
-        goalEntityUI.SetGoalEntityUI(identity, ItemFactory.Instance.GetItem(identity.type).GetComponent<Item>().spriteContainers[0].sprite, 0);
+        var goalEntityUI = Instantiate(goalEntityUIPrefab, Vector3.zero, quaternion.identity).GetComponent<GoalEntityView>();
+        goalEntityUI.SetGoalEntityUI(ItemFactory.Instance.GetItem(identity.type).GetComponent<Item>().itemSprite.sprites[0].sprite, 0);
         goalEntityUI.transform.SetParent(view.goalLayout.transform);
         ResetRectTransform(goalEntityUI.GetComponent<RectTransform>());
         return goalEntityUI;

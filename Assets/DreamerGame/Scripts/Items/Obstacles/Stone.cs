@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Stone : Obstacle
+public class Stone : Item
 {
     public override void ExplosionBehavior(HashSet<Item> markedItems)
     {

@@ -34,7 +34,6 @@ public class ObjectPool : MonoBehaviour
             {
                 Item item = Instantiate(ItemFactory.Instance.GetItem(poolableObject.type), Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
                 item.transform.parent = parent;
-                item.InitializeItem();
                 itemPool.Add(item); 
             }
         }
@@ -45,13 +44,11 @@ public class ObjectPool : MonoBehaviour
         Item item = itemPool.FirstOrDefault(item => item.type == type);
         if (item == null)
         {
-            print("Instantiated Object");
+            Debug.Log("Instantiated Object");
             var poolableObject= _poolableObjects.First(poolableObject => poolableObject.type == type);
-            item = Instantiate(ItemFactory.Instance.GetItem(poolableObject.type), Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
-            item.InitializeItem();
+            item = Instantiate(ItemFactory.Instance.GetItem(poolableObject.type, color), Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
         }
         item.transform.position = position;
-        item.SetColor(color);
         itemPool.Remove(item);
         return item;
     }
@@ -60,5 +57,7 @@ public class ObjectPool : MonoBehaviour
     {
         item.transform.position = Vector3.up * 1000;
         itemPool.Add(item);
+        item.activeState = 0;
+        item.spriteRenderer.sprite = item.itemSprite.sprites[0].sprite;
     }
 }
