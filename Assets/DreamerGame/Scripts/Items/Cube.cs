@@ -67,11 +67,11 @@ public class Cube : Item
     {
         if (matchCount >= tntBonusRule)
         {
-            spriteRenderer.sprite = specialSpriteContainers.First(state => state.name.Equals("BombHint")).sprite;
+            spriteRenderer.sprite = itemSprite.specialSprites.First(container => container.name.Equals("BombHint")).sprite;
         }
         else
         {
-            spriteRenderer.sprite = spriteContainers[0].sprite;
+            spriteRenderer.sprite = itemSprite.sprites[activeState].sprite;
         }
     }
 }

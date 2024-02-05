@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: bdb4b21437b6d9144ad051c53e4a1ff4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a4e518ee84c552647b206f9ab389311a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -95,10 +95,6 @@ GameObject:
   - component: {fileID: 447124987902721068}
   - component: {fileID: 5651657616932993710}
   - component: {fileID: 861072346091355378}
-  - component: {fileID: 1785496308763152406}
-  - component: {fileID: 3704532798732780158}
-  - component: {fileID: 3509038302089530751}
-  - component: {fileID: 6351828129062822945}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -137,17 +133,17 @@ MonoBehaviour:
   spriteRenderer: {fileID: 8400033240464874336}
   boxCollider: {fileID: 861072346091355378}
   fallable: 1
-  touchable: 1
   matchable: 1
   minMatchCount: 2
-  interactable: 0
-  color: 1
   type: 0
-  specialSpriteContainers:
-  - name: BombHint
-    sprite: {fileID: 21300000, guid: 32f6002eb36215d48afe0f701af4f582, type: 3}
-  spriteContainers:
-  - sprite: {fileID: 21300000, guid: bdb4b21437b6d9144ad051c53e4a1ff4, type: 3}
+  color: 5
+  interactable: 0
+  itemSprite:
+    specialSprites:
+    - name: BombHint
+      sprite: {fileID: 21300000, guid: de63cec4f3e84c04da8f6ab0527c8564, type: 3}
+    sprites:
+    - sprite: {fileID: 21300000, guid: a4e518ee84c552647b206f9ab389311a, type: 3}
   pos: {x: 0, y: 0}
   destinationPos: {x: 0, y: 0}
   speed: 0
@@ -157,7 +153,6 @@ MonoBehaviour:
   OnMatchCountUpdated:
     m_PersistentCalls:
       m_Calls: []
-  colorStorages: []
   tntBonusRule: 5
 --- !u!61 &861072346091355378
 BoxCollider2D:
@@ -204,75 +199,3 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.4004688, y: 1.385988}
   m_EdgeRadius: 0
---- !u!114 &1785496308763152406
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5194767123685943794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76a2ec85dfa5c694abbd3d952c78d422, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: 2
-  specialStates:
-  - name: BombHint
-    sprite: {fileID: 21300000, guid: 32f6002eb36215d48afe0f701af4f582, type: 3}
-  states:
-  - sprite: {fileID: 21300000, guid: bdb4b21437b6d9144ad051c53e4a1ff4, type: 3}
---- !u!114 &3704532798732780158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5194767123685943794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76a2ec85dfa5c694abbd3d952c78d422, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: 3
-  specialStates:
-  - name: BombHint
-    sprite: {fileID: 21300000, guid: 3c86d3329cac88240b6f1a482ed796e9, type: 3}
-  states:
-  - sprite: {fileID: 21300000, guid: 43559e336b42a014b93a544b2f904075, type: 3}
---- !u!114 &3509038302089530751
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5194767123685943794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76a2ec85dfa5c694abbd3d952c78d422, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: 4
-  specialStates:
-  - name: BombHint
-    sprite: {fileID: 21300000, guid: 2a0378b0616138942959c64c30ab6605, type: 3}
-  states:
-  - sprite: {fileID: 21300000, guid: 3e0adaf879a5efe4ba8d9d88a94248c8, type: 3}
---- !u!114 &6351828129062822945
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5194767123685943794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76a2ec85dfa5c694abbd3d952c78d422, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: 5
-  specialStates:
-  - name: BombHint
-    sprite: {fileID: 21300000, guid: de63cec4f3e84c04da8f6ab0527c8564, type: 3}
-  states:
-  - sprite: {fileID: 21300000, guid: a4e518ee84c552647b206f9ab389311a, type: 3}
