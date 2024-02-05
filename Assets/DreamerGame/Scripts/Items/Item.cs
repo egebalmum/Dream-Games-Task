@@ -132,7 +132,7 @@ public abstract class Item : MonoBehaviour
                 SetDestinationPos(nextStop);
                 Board.Instance.FallItemsInColumn(pos.x);
             }
-            speed = Mathf.Min(speed + GameManager.Instance.acceleration * Time.deltaTime, GameManager.Instance.speedLimit);
+            speed = Mathf.Min(speed + GameManager.Instance.gameSettings.acceleration * Time.deltaTime, GameManager.Instance.gameSettings.speedLimit);
             transform.position += -Vector3.up * (speed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
@@ -140,12 +140,12 @@ public abstract class Item : MonoBehaviour
 
         void AdjustItemOnHit(Item bottomItem)
         {
-            if (GameManager.Instance.speedTransferType == SpeedTransferType.TopToBottom)
+            if (GameManager.Instance.gameSettings.speedTransferType == SpeedTransferType.TopToBottom)
             {
                 speed = bottomItem.speed;
                 transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
             }
-            else if (GameManager.Instance.speedTransferType == SpeedTransferType.BottomToTop)
+            else if (GameManager.Instance.gameSettings.speedTransferType == SpeedTransferType.BottomToTop)
             {
                 bottomItem.speed = speed;
                 transform.position = bottomItem.transform.position + (Vector3.up * Board.Instance.cellSize.y);
@@ -154,7 +154,7 @@ public abstract class Item : MonoBehaviour
         bool IsReachedDestination(int destinationIndex)
         {
             float distanceY = transform.position.y - Board.Instance.cells[destinationIndex].transform.position.y;
-            return distanceY <= GameManager.Instance.fallStopThreshold;
+            return distanceY <= GameManager.Instance.gameSettings.fallStopThreshold;
         }
         bool UpdatePosition(int destinationIndex, int currentIndex)
         {

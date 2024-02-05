@@ -16,6 +16,12 @@ public class LevelReader
         Debug.LogError($"Level file not found: {levelName}");
         return null;
     }
+    
+    public bool Exist(string levelName)
+    {
+        TextAsset levelFile = Resources.Load<TextAsset>($"Levels/{levelName}");
+        return levelFile != null;
+    }
 
 
     public JsonTypeConverter.JsonType.JsonOutput GetTypes(string str)

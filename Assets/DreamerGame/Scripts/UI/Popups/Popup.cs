@@ -18,7 +18,7 @@ public class Popup : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void Show()
+    public virtual void Show()
     {
         gameObject.SetActive(true);
         if (closeButton != null)

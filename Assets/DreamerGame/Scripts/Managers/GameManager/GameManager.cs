@@ -9,16 +9,15 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     [HideInInspector]public GameState state;
     [HideInInspector] public int persistLevel;
-    [Header("Game Settings")]
-    public float acceleration = 9.81f;
-    public float speedLimit = 50f;
-    public float fallStopThreshold = 0.02f;
-    public SpeedTransferType speedTransferType = SpeedTransferType.TopToBottom;
+    [HideInInspector] public int upgrade;
+    [HideInInspector] public GameSettings gameSettings;
+    
     private void Awake()
     {
         InitializeSingleton();
         Application.targetFrameRate = 60;
         DontDestroyOnLoad(this);
+        gameSettings = Resources.Load<GameSettings>("GameSettings");
         GetPersist();
     }
 
@@ -38,8 +37,11 @@ public class GameManager : MonoBehaviour
         if (!hasKey)
         {
             PlayerPrefs.SetInt("Level", 1);
+            PlayerPrefs.SetInt("Upgrade",0);
+            PlayerPrefs.Save();
         }
         persistLevel = PlayerPrefs.GetInt("Level");
+        upgrade = PlayerPrefs.GetInt("Upgrade");
     }
 
 
@@ -58,7 +60,17 @@ public class GameManager : MonoBehaviour
     public void LevelCompleted()
     {
         persistLevel += 1;
+        upgrade = 1;
         PlayerPrefs.SetInt("Level", persistLevel);
+        PlayerPrefs.SetInt("Upgrade", upgrade);
+        PlayerPrefs.Save();
+    }
+
+    public void UpgradeExecuted()
+    {
+        upgrade = 0;
+        PlayerPrefs.SetInt("Upgrade", upgrade);
+        PlayerPrefs.Save();
     }
     
 }

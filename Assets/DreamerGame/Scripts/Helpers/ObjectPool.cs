@@ -9,11 +9,11 @@ public class ObjectPool : MonoBehaviour
 {
     public static ObjectPool Instance;
     private List<Item> itemPool = new List<Item>();
-    private PoolSettings.PoolableObject[] _poolableObjects;
+    private PoolSettings _poolSettings;
     private void Awake()
     {
         InitializeSingleton();
-        _poolableObjects = Resources.Load<PoolSettings>("PoolSettings").poolableObjects;
+        _poolSettings = Resources.Load<PoolSettings>("PoolItems");
     }
     
     private void InitializeSingleton()
@@ -27,7 +27,7 @@ public class ObjectPool : MonoBehaviour
     }
     public void CreatePool(Transform parent)
     {
-        foreach (var poolableObject in _poolableObjects)
+        foreach (var poolableObject in _poolSettings.poolableObjects)
         {
             int amount = poolableObject.amount;
             for (int i = 0; i < amount; i++)
@@ -45,8 +45,12 @@ public class ObjectPool : MonoBehaviour
         if (item == null)
         {
             Debug.Log("Instantiated Object");
-            var poolableObject= _poolableObjects.First(poolableObject => poolableObject.type == type);
+            var poolableObject= _poolSettings.poolableObjects.First(poolableObject => poolableObject.type == type);
             item = Instantiate(ItemFactory.Instance.GetItem(poolableObject.type, color), Vector3.up * 1000, quaternion.identity).GetComponent<Item>();
+        }
+        else
+        {
+            item.SetColor(color);
         }
         item.transform.position = position;
         itemPool.Remove(item);

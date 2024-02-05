@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: bdb4b21437b6d9144ad051c53e4a1ff4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a4e518ee84c552647b206f9ab389311a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -135,12 +135,15 @@ MonoBehaviour:
   fallable: 1
   matchable: 1
   minMatchCount: 2
-  color: 1
   type: 0
+  color: 5
   interactable: 0
   itemSprite:
-    specialSprites: []
-    sprites: []
+    specialSprites:
+    - name: BombHint
+      sprite: {fileID: 21300000, guid: de63cec4f3e84c04da8f6ab0527c8564, type: 3}
+    sprites:
+    - sprite: {fileID: 21300000, guid: a4e518ee84c552647b206f9ab389311a, type: 3}
   pos: {x: 0, y: 0}
   destinationPos: {x: 0, y: 0}
   speed: 0
@@ -150,7 +153,6 @@ MonoBehaviour:
   OnMatchCountUpdated:
     m_PersistentCalls:
       m_Calls: []
-  colorStorages: []
   tntBonusRule: 5
 --- !u!61 &861072346091355378
 BoxCollider2D:

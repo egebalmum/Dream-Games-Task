@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 public class LevelManager : MonoBehaviour
 {
@@ -12,17 +13,19 @@ public class LevelManager : MonoBehaviour
     [HideInInspector] public LevelState state = LevelState.Loading;
     private HashSet<Item> _markedItems = new HashSet<Item>();
     private List<Goal> _goals = new List<Goal>();
+    private GoalSettings _goalSettings;
     private int _moveCount;
     private LevelReader _levelReader;
     [SerializeField] private LevelView view;
     [SerializeField] private Popup failPopup;
-    [SerializeField] private ParticleSystem winAnimation;
+    [SerializeField] private Popup winPopup;
     [SerializeField] private GameObject goalEntityUIPrefab;
     private UnityEvent OnMove = new UnityEvent();
     private void Awake()
     {
         InitializeSingleton();
         LoadLevelData();
+        _goalSettings = Resources.Load<GoalSettings>("GoalItems");
         OnMove.AddListener(view.DecrementMoveCount);
     }
 
@@ -38,7 +41,7 @@ public class LevelManager : MonoBehaviour
 
     public void TouchEvent(Item touchedItem)
     {
-        if (state == LevelState.Idle && _moveCount != 0)
+        if (state == LevelState.Idle && _moveCount != 0 && GameManager.Instance.state == GameState.InGame)
         {
             if (touchedItem.falling)
             {
@@ -49,7 +52,7 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    public void TouchEventCoroutine(Item touchedItem)
+    private void TouchEventCoroutine(Item touchedItem)
     {
         state = LevelState.Animating;
         _moveCount -= 1;
@@ -64,15 +67,19 @@ public class LevelManager : MonoBehaviour
         
         
         
-        if (state == LevelState.Animating)
-        {
-            state = LevelState.Idle;
-        }
+        
 
+        
+        //IN THE END
         if (_moveCount == 0 && GameManager.Instance.state != GameState.Win)
         {
             GameManager.Instance.state = GameState.Fail;
             StartCoroutine(FailCoroutine());
+        }
+
+        if (GameManager.Instance.state == GameState.InGame && state == LevelState.Animating)
+        {
+            state = LevelState.Idle;
         }
     }
     
@@ -118,17 +125,12 @@ public class LevelManager : MonoBehaviour
             }
         }
     }
-
+    
     public void InitializeGoals(Item[] items)
-    {
-        DemoGoalSystem(items);
-    }
-
-    public void DemoGoalSystem(Item[] items)
     {
         foreach (var item in items)
         {
-            if (item.type == ItemType.Box || item.type == ItemType.Stone || item.type == ItemType.Vase)
+            if (_goalSettings.goalEntities.Any(goalEntity => goalEntity.type == item.type && goalEntity.color == item.color))
             {
                 if (_goals.Any(goal => goal.goalIdentity == (item.type, item.color)))
                 {
@@ -159,7 +161,7 @@ public class LevelManager : MonoBehaviour
         return goalEntityUI;
     }
     
-    public void ResetRectTransform(RectTransform rectTransform)
+    private void ResetRectTransform(RectTransform rectTransform)
     {
         rectTransform.anchoredPosition = Vector2.zero;
         rectTransform.sizeDelta = new Vector2(100, 100);
@@ -176,7 +178,7 @@ public class LevelManager : MonoBehaviour
         goal.DecrementAmount();
     }
 
-    public void CheckGoals()
+    private void CheckGoals()
     {
         bool goalsNotFinished = _goals.Any(goal => goal.amount != 0);
         if (!goalsNotFinished)
@@ -188,10 +190,10 @@ public class LevelManager : MonoBehaviour
 
     private IEnumerator WinCoroutine()
     {
-        yield return new WaitForSeconds(0.5f);
-        winAnimation.Play();
-        yield return new WaitForSeconds(1);
         GameManager.Instance.LevelCompleted();
+        yield return new WaitForSeconds(0.5f);
+        winPopup.Show();
+        yield return new WaitForSeconds(2.5f);
         GameManager.Instance.LoadMenuScene();
     }
 

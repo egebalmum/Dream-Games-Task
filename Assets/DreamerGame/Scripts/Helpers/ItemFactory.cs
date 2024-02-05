@@ -13,7 +13,7 @@ public class ItemFactory : MonoBehaviour
     private void Awake()
     {
         InitializeSingleton();
-        _factorySettings = Resources.Load<ItemFactorySettings>("ItemFactorySettings");
+        _factorySettings = Resources.Load<ItemFactorySettings>("ItemFactory");
     }
     
     private void InitializeSingleton()
