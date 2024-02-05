@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15c3c05550860ee4093a0f4b69ee4483, type: 3}
   m_Name: ItemFactorySettings
   m_EditorClassIdentifier: 
-  itemAsds:
+  itemEntities:
   - type: 0
     prefab: {fileID: 5194767123685943794, guid: 41c13f015f0664c438ebb1a7c14b76b1, type: 3}
   - type: 1

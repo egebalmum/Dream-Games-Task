@@ -14,12 +14,11 @@ public abstract class Item : MonoBehaviour
    
    [Header("Attributes")]
    public bool fallable;
-   public bool touchable;
    public bool matchable;
    public int minMatchCount;
-   public bool interactable;
    public ColorType color;
    public ItemType type;
+   [HideInInspector] public bool interactable;
    [SerializeField] public ItemSprite.SpecialSpriteContainer[] specialSpriteContainers;
    [SerializeField] public ItemSprite.SpriteContainer[] spriteContainers;
    [HideInInspector] public Vector2Int pos;
@@ -37,7 +36,7 @@ public abstract class Item : MonoBehaviour
    
    private void OnMouseDown()
    {
-      if (!touchable)
+      if (!interactable)
       {
          //Play feedback animation in coroutine
          return;
@@ -221,14 +220,11 @@ public abstract class Item : MonoBehaviour
             falling = false;
             Board.Instance.RegisterFallingObject(-1);
         }
-        else
-        {
-            //Board.Instance.RegisterFallingObject(0);
-        }
         SetDestinationPos(invalidPos);
         UpdateMatchCount(1);
         var items = Board.Instance.AroundItems(pos);
         items.ForEach(item => item.UpdateMatches());
+        LevelManager.Instance.DecrementGoal((type, color));
         ObjectPool.Instance.DestroyItem(this);
         spriteRenderer.sprite = spriteContainers[0].sprite;
     }
@@ -290,46 +286,35 @@ public abstract class Item : MonoBehaviour
         DestroyItem();
     }
 
-    public virtual void TouchBehaviour(HashSet<Item> markedItems)
+    public bool IsMarked(HashSet<Item> markedItems)
     {
         if (markedItems.Contains(this))
         {
-            return;
+            return true;
         }
 
+        return false;
+    }
+    public virtual void TouchBehaviour(HashSet<Item> markedItems)
+    {
         markedItems.Add(this);
         //
     }
 
     public virtual void ExplosionBehavior(HashSet<Item> markedItems)
     {
-        if (markedItems.Contains(this))
-        {
-            return;
-        }
-
         markedItems.Add(this);
         //
     }
 
     public virtual void BlastBehaviour(HashSet<Item> markedItems)
     {
-        if (markedItems.Contains(this))
-        {
-            return;
-        }
-
         markedItems.Add(this);
         //
     }
 
     public virtual void NearBlastBehaviour(HashSet<Item> markedItems)
     {
-        if (markedItems.Contains(this))
-        {
-            return;
-        }
-
         markedItems.Add(this);
         //
     }

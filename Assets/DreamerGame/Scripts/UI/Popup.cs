@@ -1,18 +1,34 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Popup : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public GameObject closeButton;
+    public bool showCloseButton = true;
+
+    private void Start()
     {
-        
+        Hide();
     }
 
-    // Update is called once per frame
-    void Update()
+    public virtual void Hide()
     {
-        
+        gameObject.SetActive(false);
+    }
+
+    public virtual void Show()
+    {
+        gameObject.SetActive(true);
+        if (closeButton != null)
+        {
+            closeButton.SetActive(showCloseButton);
+        }
+    }
+    
+    public virtual void OnCloseButtonPressed()
+    {
+        Hide();
     }
 }

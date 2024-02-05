@@ -28,7 +28,7 @@ public class ItemFactory : MonoBehaviour
 
     public GameObject GetItem(ItemType type)
     {
-        GameObject prefab =  _factorySettings.itemAsds.First(item => item.type == type).prefab;
+        GameObject prefab =  _factorySettings.itemEntities.First(item => item.type == type).prefab;
         return prefab;
     }
     

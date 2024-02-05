@@ -8,13 +8,23 @@ public class Vase : Obstacle
     private int lives = 2;
     public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
+        if (IsMarked(markedItems))
+        {
+            return;
+        }
         base.ExplosionBehavior(markedItems);
+        
         GetDamage();
     }
 
     public override void NearBlastBehaviour(HashSet<Item> markedItems)
     {
+        if (IsMarked(markedItems))
+        {
+            return;
+        }
         base.NearBlastBehaviour(markedItems);
+        
         GetDamage();
     }
 

@@ -9,8 +9,6 @@ public class Cube : Item
     [SerializeField] private int tntBonusRule;
     public override void TouchBehaviour(HashSet<Item> markedItems)
     {
-        base.TouchBehaviour(markedItems);
-        
         var items = Board.Instance.CheckMatches(pos.x, pos.y);
         if (items.Count < minMatchCount)
         {
@@ -30,18 +28,32 @@ public class Cube : Item
 
     public override void BlastBehaviour(HashSet<Item> markedItems)
     {
+        if (IsMarked(markedItems))
+        {
+            return;
+        }
         base.BlastBehaviour(markedItems);
+        
         GetDamage();
         var aroundItems = Board.Instance.AroundItems(pos);
         foreach (var aroundItem in aroundItems)
         {
+            if (aroundItem.type == type && aroundItem.color == color)
+            {
+                continue;
+            }
             aroundItem.NearBlastBehaviour(markedItems);
         }
     }
 
     public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
+        if (IsMarked(markedItems))
+        {
+            return;
+        }
         base.ExplosionBehavior(markedItems);
+        
         GetDamage();
     }
 

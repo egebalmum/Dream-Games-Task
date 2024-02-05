@@ -11,6 +11,8 @@ public class TNT : Item
     [SerializeField] private int comboDiameter = 7;
     public override void TouchBehaviour(HashSet<Item> markedItems)
     {
+        base.TouchBehaviour(markedItems);
+        
         GetDamage();
         var aroundItems = Board.Instance.AroundItems(pos);
         bool comboCondition = aroundItems.Any(item => item.type == ItemType.TNT);
@@ -41,8 +43,13 @@ public class TNT : Item
 
     public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
-        GetDamage();
+        if (IsMarked(markedItems))
+        {
+            return;
+        }
+        base.ExplosionBehavior(markedItems);
         
+        GetDamage();
         for (int x = pos.x - (diameter-1)/2; x < pos.x + (diameter-1)/2 + 1; x++)
         {
             for (int y = pos.y - (diameter-1)/2; y < pos.y + (diameter-1)/2 + 1; y++)

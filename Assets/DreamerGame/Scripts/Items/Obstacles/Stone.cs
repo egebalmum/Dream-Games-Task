@@ -6,6 +6,12 @@ public class Stone : Obstacle
 {
     public override void ExplosionBehavior(HashSet<Item> markedItems)
     {
+        if (IsMarked(markedItems))
+        {
+            return;
+        }
+        base.ExplosionBehavior(markedItems);
+        
         GetDamage();
     }
 }

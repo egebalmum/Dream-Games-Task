@@ -38,7 +38,11 @@ public class Board : MonoBehaviour
     {
         //CheckBoardMatches();
         FallItems();
-        CreateNewItems();
+        int createdItemCount = CreateNewItems();
+        if (createdItemCount == 0 && _fallingObjectCount == 0)
+        {
+            TryShuffle();
+        }
     }
     public void FallItems()
     {
@@ -70,6 +74,7 @@ public class Board : MonoBehaviour
         InitializePool();
         InitializeCells();
         InitializeItems();
+        InitializeGoals();
         InitializeColumnQueues();
         CheckBoardMatches();
         bool shuffleNeeded = TryShuffle();
@@ -146,7 +151,12 @@ public class Board : MonoBehaviour
         }
     }
 
-    private void CreateNewItems()
+    private void InitializeGoals()
+    {
+        LevelManager.Instance.InitializeGoals(items);
+    }
+
+    private int CreateNewItems()
     {
         List<Item> createdItems = new List<Item>();
         for (int x = 0; x < size.x; x++)
@@ -158,6 +168,7 @@ public class Board : MonoBehaviour
             }
         }
         FallNewItems(createdItems);
+        return createdItems.Count;
     }
 
     private void FallNewItems(List<Item> newItems)
@@ -361,11 +372,11 @@ public class Board : MonoBehaviour
             while (n > 1)
             {
                 n--;
-                if (items[n] == null || items[n] is Obstacle)
+                if (items[n] == null || !items[n].matchable)
                     continue;
 
                 int k = Random.Range(0, n + 1);
-                if (items[k] == null || items[k] is Obstacle)
+                if (items[k] == null || !items[k].matchable)
                     continue;
 
                 Item temp = items[n];
