@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
-using Random = UnityEngine.Random;
 [CreateAssetMenu(menuName= "ScriptableObjects/ItemFactorySettings")]
 public class ItemFactorySettings : ScriptableObject
 {
@@ -12,6 +10,7 @@ public class ItemFactorySettings : ScriptableObject
     {
         public ItemType type;
         public GameObject prefab;
+        public ColorVariance[] colorVariances;
     }
 
     public ItemEntity[] itemEntities;

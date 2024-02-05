@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Vase : Obstacle
+public class Vase : Item
 {
     [Header("Type Specific Attributes")] [SerializeField]
     private int lives = 2;
@@ -28,9 +28,10 @@ public class Vase : Obstacle
         GetDamage();
     }
 
-    public override void GetDamage()
+    protected override void GetDamage()
     {
         lives -= 1;
+        activeState += 1;
         if (lives == 0)
         {
             base.GetDamage();
@@ -38,7 +39,7 @@ public class Vase : Obstacle
         }
         else
         {
-            spriteRenderer.sprite = spriteContainers[spriteContainers.Length-lives].sprite;
+            spriteRenderer.sprite = itemSprite.sprites[activeState].sprite;
         }
     }
 }

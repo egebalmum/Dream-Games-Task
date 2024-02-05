@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Box : Obstacle
+public class Box : Item
 {
     public override void NearBlastBehaviour(HashSet<Item> markedItems)
     {

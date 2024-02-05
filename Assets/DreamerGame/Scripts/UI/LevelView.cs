@@ -5,18 +5,17 @@ using UnityEngine;
 
 public class LevelView : MonoBehaviour
 {
-    public List<GoalEntityUI> goalEntityUis;
     public GameObject goalLayout;
-    public TextMeshProUGUI moveTextMesh;
+    public TextMeshProUGUI moveTestMesh;
     
     public void SetMoveCount(int value)
     {
-        moveTextMesh.text = value.ToString();
+        moveTestMesh.text = value.ToString();
     }
 
     public void DecrementMoveCount()
     {
-        int currentAmount = int.Parse(moveTextMesh.text);
-        moveTextMesh.text = (currentAmount - 1).ToString();
+        int currentAmount = int.Parse(moveTestMesh.text);
+        moveTestMesh.text = (currentAmount - 1).ToString();
     }
 }

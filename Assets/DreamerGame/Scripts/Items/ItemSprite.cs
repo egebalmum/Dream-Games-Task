@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
+[Serializable]
 public class ItemSprite
 {
     [Serializable]
@@ -17,4 +19,7 @@ public class ItemSprite
     {
         public Sprite sprite;
     }
+
+    public SpecialSpriteContainer[] specialSprites;
+    public SpriteContainer[] sprites;
 }
