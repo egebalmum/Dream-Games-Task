@@ -14,18 +14,19 @@ public class Cube : Item
         {
             return;
         }
-        
-        foreach (var item in items)
-        {
-            item.BlastBehaviour(tracker);
-        }
 
-        if (items.Count >= tntBonusRule)
+        if (items.Count >= tntBonusRule) //BONUS BEHAVIOUR
         {
-            Board.Instance.CreateNewItem(ItemType.TNT, pos);
+            StartCoroutine(BonusBehaviour(items, tracker));
+        }
+        else//NORMAL BEHAVIOUR
+        {
+            foreach (var item in items)
+            {
+                item.BlastBehaviour(tracker);
+            }
         }
     }
-    
 
     public override void BlastBehaviour(ItemTracker tracker)
     {
@@ -57,7 +58,36 @@ public class Cube : Item
         
         GetDamage();
     }
+    
+    private IEnumerator BonusBehaviour(List<Item> matchedItems, ItemTracker tracker)
+    {
+        tracker.coroutineCount += 1;
 
+        foreach (var matchedItem in matchedItems)
+        {
+            var aroundItems = Board.Instance.AroundItems(matchedItem.pos);
+            foreach (var aroundItem in aroundItems)
+            {
+                if (aroundItem.type == type && aroundItem.color == color)
+                {
+                    continue;
+                }
+                aroundItem.NearBlastBehaviour(tracker);
+            }
+        }
+        yield return AnimationManager.BonusMatchAnimation(matchedItems, transform.position, 0.5f);
+
+        foreach (var matchedItem in matchedItems)
+        {
+            matchedItem.BlastBehaviour(tracker);
+        }
+
+        Board.Instance.CreateNewItem(ItemType.TNT, pos);
+
+        yield return new WaitForEndOfFrame();
+        tracker.coroutineCount -= 1;
+    }
+    
     public override void InitializeItemInBoard(Vector2Int initialPos)
     {
         base.InitializeItemInBoard(initialPos);

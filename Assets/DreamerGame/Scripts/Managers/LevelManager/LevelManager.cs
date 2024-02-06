@@ -10,7 +10,7 @@ public class LevelManager : MonoBehaviour
     public static LevelManager Instance;
     [HideInInspector] public LevelData levelData;
     [HideInInspector] public LevelState state = LevelState.Loading;
-    private ItemTracker tracker = new ItemTracker();
+    [SerializeField] private ItemTracker tracker = new ItemTracker();
     private int _activeCoroutines;
     private List<Goal> _goals = new List<Goal>();
     private GoalSettings _goalSettings;
@@ -50,23 +50,22 @@ public class LevelManager : MonoBehaviour
             {
                 return;
             }
-            TouchEventCoroutine(touchedItem);
+            state = LevelState.Animating;
+            StartCoroutine(TouchEventCoroutine(touchedItem));
         }
     }
 
-    private void TouchEventCoroutine(Item touchedItem)
+    private IEnumerator TouchEventCoroutine(Item touchedItem)
     {
-        state = LevelState.Animating;
         _moveCount -= 1;
         OnMove?.Invoke();
-        
-        
-        
         touchedItem.TouchBehaviour(tracker);
-
-
-
-        
+        yield return new WaitForEndOfFrame();
+        while (tracker.coroutineCount != 0)
+        {
+            yield return null;
+        }
+        //yield return new WaitUntil(() => tracker.coroutineCount == 0);
         tracker.ResetTracker();
         Board.Instance.AfterTouchLoop();
         if (_moveCount == 0 && GameManager.Instance.state != GameState.Win)

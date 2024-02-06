@@ -25,13 +25,14 @@ public abstract class Item : MonoBehaviour
    [HideInInspector] public int matchCount = 1;
    [HideInInspector] public int activeState;
    [HideInInspector] public UnityEvent OnMatchCountUpdated;
+   private Coroutine _fallingCoroutine;
    private readonly Vector2Int _invalidPos = new Vector2Int(-1, -1);
    
    private void OnMouseDown()
    {
       if (!interactable)
       {
-         //Play feedback animation in coroutine
+          StartCoroutine(AnimationManager.UntouchableAnimation(transform, 0.3f));
          return;
       }
       LevelManager.Instance.TouchEvent(this);
@@ -198,7 +199,10 @@ public abstract class Item : MonoBehaviour
     }
     private void DestroyItem()
     {
-        StopAllCoroutines();
+        if (_fallingCoroutine != null)
+        {
+            StopCoroutine(_fallingCoroutine);
+        }
         Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
         if (falling)
         {
@@ -211,6 +215,7 @@ public abstract class Item : MonoBehaviour
         var items = Board.Instance.AroundItems(pos);
         items.ForEach(item => item.UpdateMatches());
         LevelManager.Instance.DecrementGoal((type, color));
+        ObjectPool.Instance.CreateParticle(type, transform.position, color);
         ObjectPool.Instance.DestroyItem(this);
     }
 

@@ -241,11 +241,11 @@ public class Board : MonoBehaviour
     public List<Item> CheckMatches(int startX, int startY)
     {
         List<Item> matches = new List<Item>();
-        FindMatches(startX, startY, items[startY* size.x + startX].color, matches);
+        FindMatches(startX, startY, items[startY* size.x + startX].type , items[startY* size.x + startX].color, matches, items[startY* size.x + startX].matchable);
         return matches;
     }
     
-    private void FindMatches(int x, int y, ColorType color, List<Item> matches)
+    private void FindMatches(int x, int y, ItemType type, ColorType color, List<Item> matches, bool isMatchable)
     {
         if (x < 0 || x >= size.x || y < 0 || y >= size.y)
         {
@@ -257,16 +257,16 @@ public class Board : MonoBehaviour
             return;
         }
 
-        if (item.falling || !item.matchable || matches.Contains(item) || item.color != color)
+        if (item.falling || (isMatchable && !item.matchable) || matches.Contains(item) || item.color != color || item.type != type)
         {
             return;
         }
         
         matches.Add(item);
-        FindMatches(x+1, y, color, matches);
-        FindMatches(x-1, y, color, matches);
-        FindMatches(x, y+1, color, matches);
-        FindMatches(x, y-1, color, matches);
+        FindMatches(x+1, y, type, color, matches, isMatchable);
+        FindMatches(x-1, y, type, color, matches, isMatchable);
+        FindMatches(x, y+1, type, color, matches, isMatchable);
+        FindMatches(x, y-1, type, color, matches, isMatchable);
     }
 
     public List<Item> AroundItems(Vector2Int itemPos)

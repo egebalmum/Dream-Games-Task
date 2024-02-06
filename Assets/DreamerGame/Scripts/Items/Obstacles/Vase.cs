@@ -13,8 +13,14 @@ public class Vase : Item
             return;
         }
         base.ExplosionBehavior(tracker);
-        
-        GetDamage();
+        if (lives == 1)
+        {
+            GetDamage();
+        }
+        else
+        {
+            StartCoroutine(DamageEffect(tracker));
+        }
     }
 
     public override void NearBlastBehaviour(ItemTracker tracker)
@@ -25,7 +31,14 @@ public class Vase : Item
         }
         base.NearBlastBehaviour(tracker);
         
-        GetDamage();
+        if (lives == 1)
+        {
+            GetDamage();
+        }
+        else
+        {
+            StartCoroutine(DamageEffect(tracker));
+        }
     }
 
     protected override void GetDamage()
@@ -41,5 +54,14 @@ public class Vase : Item
         {
             spriteRenderer.sprite = itemSprite.sprites[activeState].sprite;
         }
+    }
+
+    private IEnumerator DamageEffect(ItemTracker tracker)
+    {
+        tracker.coroutineCount += 1;
+        GetDamage();
+        yield return AnimationManager.DamagedAnimation(transform, 0.5f);
+        yield return new WaitForEndOfFrame();
+        tracker.coroutineCount -= 1;
     }
 }
