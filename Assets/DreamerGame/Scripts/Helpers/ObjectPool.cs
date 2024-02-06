@@ -63,5 +63,6 @@ public class ObjectPool : MonoBehaviour
         itemPool.Add(item);
         item.activeState = 0;
         item.spriteRenderer.sprite = item.itemSprite.sprites[0].sprite;
+        item.transform.localScale = new Vector3(1, 1, 1);
     }
 }

@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
-using Random = UnityEngine.Random;
 
 public abstract class Item : MonoBehaviour
 {
@@ -28,8 +25,6 @@ public abstract class Item : MonoBehaviour
    [HideInInspector] public int matchCount = 1;
    [HideInInspector] public int activeState;
    [HideInInspector] public UnityEvent OnMatchCountUpdated;
-   
-   private Coroutine _fallCoroutine;
    private readonly Vector2Int _invalidPos = new Vector2Int(-1, -1);
    
    private void OnMouseDown()
@@ -73,7 +68,7 @@ public abstract class Item : MonoBehaviour
             var items = Board.Instance.AroundItems(pos);
             items.ForEach(item => item.UpdateMatches());
         }
-        _fallCoroutine = StartCoroutine(FallCoroutine(nextStop));
+        StartCoroutine(FallCoroutine(nextStop));
         return true;
     }
 
@@ -203,10 +198,7 @@ public abstract class Item : MonoBehaviour
     }
     private void DestroyItem()
     {
-        if (_fallCoroutine != null)
-        {
-            StopCoroutine(_fallCoroutine);
-        }
+        StopAllCoroutines();
         Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
         if (falling)
         {

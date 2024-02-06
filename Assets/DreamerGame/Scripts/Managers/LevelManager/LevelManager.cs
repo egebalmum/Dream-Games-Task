@@ -4,7 +4,6 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 public class LevelManager : MonoBehaviour
 {
@@ -12,6 +11,7 @@ public class LevelManager : MonoBehaviour
     [HideInInspector] public LevelData levelData;
     [HideInInspector] public LevelState state = LevelState.Loading;
     private HashSet<Item> _markedItems = new HashSet<Item>();
+    private int _activeCoroutines;
     private List<Goal> _goals = new List<Goal>();
     private GoalSettings _goalSettings;
     private int _moveCount;
@@ -19,7 +19,6 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private LevelView view;
     [SerializeField] private Popup failPopup;
     [SerializeField] private Popup winPopup;
-    [SerializeField] private GameObject goalEntityUIPrefab;
     private UnityEvent OnMove = new UnityEvent();
     private void Awake()
     {
@@ -48,7 +47,6 @@ public class LevelManager : MonoBehaviour
                 return;
             }
             TouchEventCoroutine(touchedItem);
-            //StartCoroutine(TouchEventCoroutine(touchedItem));
         }
     }
 
@@ -61,16 +59,13 @@ public class LevelManager : MonoBehaviour
         
         
         touchedItem.TouchBehaviour(_markedItems);
+
+
+
+        
+        _activeCoroutines = 0;
         _markedItems.Clear();
         Board.Instance.AfterTouchLoop();
-
-        
-        
-        
-        
-
-        
-        //IN THE END
         if (_moveCount == 0 && GameManager.Instance.state != GameState.Win)
         {
             GameManager.Instance.state = GameState.Fail;
@@ -132,42 +127,26 @@ public class LevelManager : MonoBehaviour
         {
             if (_goalSettings.goalEntities.Any(goalEntity => goalEntity.type == item.type && goalEntity.color == item.color))
             {
-                if (_goals.Any(goal => goal.goalIdentity == (item.type, item.color)))
+                Goal goal;
+                if (_goals.Any(goalInList => goalInList.goalIdentity == (item.type, item.color)))
                 {
-                    var goal = _goals.First(goal => goal.goalIdentity == (item.type, item.color));
-                    goal.IncrementAmount();
+                    goal = _goals.First(goalInList => goalInList.goalIdentity == (item.type, item.color));
                 }
                 else
                 {
-                    Goal goal = new Goal((item.type, item.color));
+                    goal = new Goal((item.type, item.color));
                     _goals.Add(goal);
-                    var goalEntityUI = CreateGoalEntityUI((item.type, item.color));
+                    var goalEntityUI = view.CreateGoalEntityUI((item.type, item.color));
                     goal.onAmountDecrement.AddListener(goalEntityUI.DecrementAmount);
                     goal.onFinished.AddListener(goalEntityUI.SetFinish);
                     goal.onFinished.AddListener(CheckGoals);
                     goal.onAmountIncrement.AddListener(goalEntityUI.IncrementAmount);
-                    goal.IncrementAmount();
                 }
+                goal.IncrementAmount();
             }
         }
     }
-
-    public GoalEntityView CreateGoalEntityUI((ItemType type, ColorType color) identity)
-    {
-        var goalEntityUI = Instantiate(goalEntityUIPrefab, Vector3.zero, quaternion.identity).GetComponent<GoalEntityView>();
-        goalEntityUI.SetGoalEntityUI(ItemFactory.Instance.GetItem(identity.type).GetComponent<Item>().itemSprite.sprites[0].sprite, 0);
-        goalEntityUI.transform.SetParent(view.goalLayout.transform);
-        ResetRectTransform(goalEntityUI.GetComponent<RectTransform>());
-        return goalEntityUI;
-    }
     
-    private void ResetRectTransform(RectTransform rectTransform)
-    {
-        rectTransform.anchoredPosition = Vector2.zero;
-        rectTransform.sizeDelta = new Vector2(100, 100);
-        rectTransform.localScale = Vector3.one;
-        rectTransform.localPosition = Vector3.zero;
-    }
     public void DecrementGoal((ItemType type, ColorType color) identity)
     {
         var goal = _goals.FirstOrDefault(goal => goal.goalIdentity == identity);

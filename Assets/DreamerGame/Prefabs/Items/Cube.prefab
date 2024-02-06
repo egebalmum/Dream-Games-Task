@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: a4e518ee84c552647b206f9ab389311a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3e0adaf879a5efe4ba8d9d88a94248c8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -136,14 +136,14 @@ MonoBehaviour:
   matchable: 1
   minMatchCount: 2
   type: 0
-  color: 5
+  color: 4
   interactable: 0
   itemSprite:
     specialSprites:
     - name: BombHint
-      sprite: {fileID: 21300000, guid: de63cec4f3e84c04da8f6ab0527c8564, type: 3}
+      sprite: {fileID: 21300000, guid: 2a0378b0616138942959c64c30ab6605, type: 3}
     sprites:
-    - sprite: {fileID: 21300000, guid: a4e518ee84c552647b206f9ab389311a, type: 3}
+    - sprite: {fileID: 21300000, guid: 3e0adaf879a5efe4ba8d9d88a94248c8, type: 3}
   pos: {x: 0, y: 0}
   destinationPos: {x: 0, y: 0}
   speed: 0

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -271,47 +272,26 @@ public class Board : MonoBehaviour
     public List<Item> AroundItems(Vector2Int itemPos)
     {
         List<Item> itemList = new List<Item>();
-        int leftIndex = CalculateIndex(itemPos.x - 1, itemPos.y);
-        int rightIndex = CalculateIndex(itemPos.x + 1, itemPos.y);
-        int topIndex = CalculateIndex(itemPos.x, itemPos.y + 1);
-        int bottomIndex = CalculateIndex(itemPos.x, itemPos.y - 1);
+        Vector2Int[] directions = new Vector2Int[] {
+            new Vector2Int(-1, 0), 
+            new Vector2Int(1, 0),
+            new Vector2Int(0, 1),
+            new Vector2Int(0, -1)
+        };
 
-        Item item;
-        if (IsInBoard(leftIndex))
+        foreach (Vector2Int direction in directions)
         {
-            item = items[leftIndex];
-            if (item != null)
+            int neighborIndex = CalculateIndex(itemPos.x + direction.x, itemPos.y + direction.y);
+            if (IsInBoard(neighborIndex))
             {
-                itemList.Add(item);
+                Item item = items[neighborIndex];
+                if (item != null)
+                {
+                    itemList.Add(item);
+                }
             }
         }
 
-        if (IsInBoard(rightIndex))
-        {
-            item = items[rightIndex];
-            if (item != null)
-            {
-                itemList.Add(item);
-            }
-        }
-
-        if (IsInBoard(topIndex))
-        {
-            item = items[topIndex];
-            if (item != null)
-            {
-                itemList.Add(item);
-            }
-        }
-
-        if (IsInBoard(bottomIndex))
-        {
-            item = items[bottomIndex];
-            if (item != null)
-            {
-                itemList.Add(item);
-            }
-        }
         return itemList;
     }
     
@@ -323,6 +303,11 @@ public class Board : MonoBehaviour
             return -1;
         }
         return y * size.x + x;
+    }
+
+    public Vector2Int CalculateVector(int index)
+    {
+        return new Vector2Int(index % size.x, index / size.x);
     }
 
     public bool IsInBoard(Vector2Int pos)
@@ -365,7 +350,7 @@ public class Board : MonoBehaviour
     private IEnumerator ShuffleBoardCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
-        int depth = 5;
+        int depth = 6;
         while (depth > 0)
         {
             int n = items.Length;
@@ -384,22 +369,29 @@ public class Board : MonoBehaviour
                 items[k] = temp;
             }
             
-            for (int x = 0; x < size.x; x++)
+            for (int index = 0; index < items.Length; index++)
             {
-                for (int y = size.y - 1; y >= 0; y--)
+                if (items[index] == null)
                 {
-                    if (items[CalculateIndex(x, y)] == null)
-                    {
-                        continue;
-                    }
-                    items[CalculateIndex(x, y)].transform.position = cells[CalculateIndex(x, y)].transform.position;
-                    items[CalculateIndex(x, y)].pos = new Vector2Int(x, y);
+                    continue;
                 }
+
+                items[index].pos = CalculateVector(index);
             }
             CheckBoardMatches();
             if (DoesMatchExist())
             {
-                print("Board shuffled");
+                for (int index = 0; index < items.Length; index++)
+                {
+                    if (items[index] == null)
+                    {
+                        continue;
+                    }
+
+                    items[index].transform.DOMove(cells[index].transform.position, 0.25f).SetEase(Ease.InOutCubic);
+                }
+                yield return new WaitForSeconds(0.25f);
+                Debug.Log("Board shuffled");
                 break;
             }
             depth -= 1;
@@ -434,4 +426,5 @@ public class Board : MonoBehaviour
 
         return false;
     }
+    
 }

@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class AnimationManager
 {
-    
     public static IEnumerator WinPopupAnimation(Transform transformStar, Transform transformText, ParticleSystem particle)
     {
         var tween = transformStar.DOMove(Vector3.zero, 0.85f).SetEase(Ease.OutBounce).OnComplete(() =>
