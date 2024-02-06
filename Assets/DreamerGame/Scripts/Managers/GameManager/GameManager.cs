@@ -15,6 +15,21 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         InitializeSingleton();
+        Initialize();
+    }
+
+
+    private void Initialize()
+    {
+        if (Instance != this)
+        {
+            return;
+        }
+        if (SceneManager.GetActiveScene().name != "MainScene")
+        {
+            LoadMenuScene();
+            return;
+        }
         Application.targetFrameRate = 60;
         DontDestroyOnLoad(this);
         gameSettings = Resources.Load<GameSettings>("GameSettings");

@@ -22,6 +22,10 @@ public class LevelManager : MonoBehaviour
     private UnityEvent OnMove = new UnityEvent();
     private void Awake()
     {
+        if (GameManager.Instance == null)
+        {
+            return;
+        }
         InitializeSingleton();
         LoadLevelData();
         _goalSettings = Resources.Load<GoalSettings>("GoalItems");
