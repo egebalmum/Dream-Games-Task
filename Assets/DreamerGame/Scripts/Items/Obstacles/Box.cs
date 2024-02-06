@@ -4,24 +4,24 @@ using UnityEngine;
 
 public class Box : Item
 {
-    public override void NearBlastBehaviour(HashSet<Item> markedItems)
+    public override void NearBlastBehaviour(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.NearBlastBehaviour(markedItems);
+        base.NearBlastBehaviour(tracker);
         
         GetDamage();
     }
 
-    public override void ExplosionBehavior(HashSet<Item> markedItems)
+    public override void ExplosionBehavior(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.ExplosionBehavior(markedItems);
+        base.ExplosionBehavior(tracker);
         
         GetDamage();
     }

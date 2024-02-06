@@ -1798,11 +1798,15 @@ PrefabInstance:
     - target: {fileID: 6727813176187621269, guid: 514507ac2c3b4954b815260ba5494a9c, type: 3}
       propertyPath: playButton
       value: 
-      objectReference: {fileID: 889911831282258507}
+      objectReference: {fileID: 4666823367273938874}
     - target: {fileID: 6727813176187621269, guid: 514507ac2c3b4954b815260ba5494a9c, type: 3}
       propertyPath: taskParent
       value: 
       objectReference: {fileID: 864179221}
+    - target: {fileID: 6727813176187621269, guid: 514507ac2c3b4954b815260ba5494a9c, type: 3}
+      propertyPath: playButtonObject
+      value: 
+      objectReference: {fileID: 889911831282258507}
     - target: {fileID: 6727813176187621269, guid: 514507ac2c3b4954b815260ba5494a9c, type: 3}
       propertyPath: tasks.Array.data[0]
       value: 

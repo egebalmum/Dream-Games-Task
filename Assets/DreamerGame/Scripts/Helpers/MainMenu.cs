@@ -3,17 +3,21 @@ using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using Button = UnityEngine.UI.Button;
 
 public class MainMenu : MonoBehaviour
 {
-    [SerializeField] private GameObject playButton;
+    [SerializeField] private GameObject playButtonObject;
     [SerializeField] private GameObject taskParent;
     private GameObject[] _taskObjects;
     private bool _nextLevelExist;
     private bool _upgraded;
+    private Button playButton;
     private void Start()
     {
         _upgraded = GameManager.Instance.upgrade == 1;
+        playButton = playButtonObject.GetComponent<Button>();
+        playButton.interactable = !_upgraded;
         Initialize();
         CheckNextLevel();
         SetTasks();
@@ -55,7 +59,10 @@ public class MainMenu : MonoBehaviour
                     _taskObjects[i].transform.DOScale(new Vector3(1, 1, 1), 1f).SetEase(Ease.OutElastic).OnComplete(
                         () =>
                         {
-                            playButton.transform.DOPunchRotation(new Vector3(0, 0, 30), 0.5f, 10, 0.5f);
+                            playButton.transform.DOPunchRotation(new Vector3(0, 0, 30), 0.5f, 10, 0.5f).OnComplete(() =>
+                            {
+                                playButton.interactable = true;
+                            });
                             SetButtonText();
                         });
                 }
@@ -79,12 +86,15 @@ public class MainMenu : MonoBehaviour
     }
     public void LoadGameScene()
     {
+        playButton.interactable = false;
         playButton.transform.DOPunchRotation(new Vector3(0, 0, 30), 0.5f, 10, 0.5f).OnComplete(() =>
         {
             if (!_nextLevelExist)
             {
                 PlayerPrefs.DeleteAll();
                 PlayerPrefs.Save();
+                GameManager.Instance.persistLevel = 1;
+                GameManager.Instance.LoadMenuScene();
                 return;
             }
             GameManager.Instance.LoadGameScene();

@@ -6,26 +6,39 @@ public class Vase : Item
 {
     [Header("Type Specific Attributes")] [SerializeField]
     private int lives = 2;
-    public override void ExplosionBehavior(HashSet<Item> markedItems)
+    public override void ExplosionBehavior(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.ExplosionBehavior(markedItems);
-        
-        GetDamage();
+        base.ExplosionBehavior(tracker);
+        if (lives == 1)
+        {
+            GetDamage();
+        }
+        else
+        {
+            StartCoroutine(DamageEffect(tracker));
+        }
     }
 
-    public override void NearBlastBehaviour(HashSet<Item> markedItems)
+    public override void NearBlastBehaviour(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.NearBlastBehaviour(markedItems);
+        base.NearBlastBehaviour(tracker);
         
-        GetDamage();
+        if (lives == 1)
+        {
+            GetDamage();
+        }
+        else
+        {
+            StartCoroutine(DamageEffect(tracker));
+        }
     }
 
     protected override void GetDamage()
@@ -41,5 +54,14 @@ public class Vase : Item
         {
             spriteRenderer.sprite = itemSprite.sprites[activeState].sprite;
         }
+    }
+
+    private IEnumerator DamageEffect(ItemTracker tracker)
+    {
+        tracker.coroutineCount += 1;
+        GetDamage();
+        yield return AnimationManager.DamagedAnimation(transform, 0.5f);
+        yield return new WaitForEndOfFrame();
+        tracker.coroutineCount -= 1;
     }
 }

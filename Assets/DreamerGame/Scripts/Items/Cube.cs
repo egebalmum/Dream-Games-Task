@@ -7,32 +7,34 @@ public class Cube : Item
 {
     [Header("Type Specific Attributes")]
     [SerializeField] private int tntBonusRule;
-    public override void TouchBehaviour(HashSet<Item> markedItems)
+    public override void TouchBehaviour(ItemTracker tracker)
     {
         var items = Board.Instance.CheckMatches(pos.x, pos.y);
         if (items.Count < minMatchCount)
         {
             return;
         }
-        
-        foreach (var item in items)
-        {
-            item.BlastBehaviour(markedItems);
-        }
 
-        if (items.Count >= tntBonusRule)
+        if (items.Count >= tntBonusRule) //BONUS BEHAVIOUR
         {
-            Board.Instance.CreateNewItem(ItemType.TNT, pos);
+            StartCoroutine(BonusBehaviour(items, tracker));
+        }
+        else//NORMAL BEHAVIOUR
+        {
+            foreach (var item in items)
+            {
+                item.BlastBehaviour(tracker);
+            }
         }
     }
 
-    public override void BlastBehaviour(HashSet<Item> markedItems)
+    public override void BlastBehaviour(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.BlastBehaviour(markedItems);
+        base.BlastBehaviour(tracker);
         
         GetDamage();
         var aroundItems = Board.Instance.AroundItems(pos);
@@ -42,21 +44,50 @@ public class Cube : Item
             {
                 continue;
             }
-            aroundItem.NearBlastBehaviour(markedItems);
+            aroundItem.NearBlastBehaviour(tracker);
         }
     }
 
-    public override void ExplosionBehavior(HashSet<Item> markedItems)
+    public override void ExplosionBehavior(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.ExplosionBehavior(markedItems);
+        base.ExplosionBehavior(tracker);
         
         GetDamage();
     }
+    
+    private IEnumerator BonusBehaviour(List<Item> matchedItems, ItemTracker tracker)
+    {
+        tracker.coroutineCount += 1;
 
+        foreach (var matchedItem in matchedItems)
+        {
+            var aroundItems = Board.Instance.AroundItems(matchedItem.pos);
+            foreach (var aroundItem in aroundItems)
+            {
+                if (aroundItem.type == type && aroundItem.color == color)
+                {
+                    continue;
+                }
+                aroundItem.NearBlastBehaviour(tracker);
+            }
+        }
+        yield return AnimationManager.BonusMatchAnimation(matchedItems, transform.position, 0.5f);
+
+        foreach (var matchedItem in matchedItems)
+        {
+            matchedItem.BlastBehaviour(tracker);
+        }
+
+        Board.Instance.CreateNewItem(ItemType.TNT, pos);
+
+        yield return new WaitForEndOfFrame();
+        tracker.coroutineCount -= 1;
+    }
+    
     public override void InitializeItemInBoard(Vector2Int initialPos)
     {
         base.InitializeItemInBoard(initialPos);

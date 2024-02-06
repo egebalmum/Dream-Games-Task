@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class FailPopup : Popup
 {
@@ -20,6 +21,7 @@ public class FailPopup : Popup
 
     public void OnPlayAgainButtonPressed()
     {
+        playAgainButton.GetComponent<Button>().interactable = false;
         playAgainButton.transform.DOPunchRotation(new Vector3(0, 0, 30), 0.5f, 10, 0.5f).OnComplete(() =>
         {
             GameManager.Instance.LoadGameScene();

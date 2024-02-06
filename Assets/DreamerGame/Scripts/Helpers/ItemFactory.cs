@@ -8,12 +8,14 @@ using Random = UnityEngine.Random;
 public class ItemFactory : MonoBehaviour
 {
     public static ItemFactory Instance;
-    private ItemFactorySettings _factorySettings;
+    private ItemFactorySettings _itemFactorySettings;
+    
+    //private ParticleFactorySettings _particleFactorySettings;
 
     private void Awake()
     {
         InitializeSingleton();
-        _factorySettings = Resources.Load<ItemFactorySettings>("ItemFactory");
+        _itemFactorySettings = Resources.Load<ItemFactorySettings>("ItemFactory");
     }
     
     private void InitializeSingleton()
@@ -28,14 +30,14 @@ public class ItemFactory : MonoBehaviour
 
     public GameObject GetItem(ItemType type, ColorType color = ColorType.Random)
     {
-        GameObject prefab =  _factorySettings.itemEntities.First(item => item.type == type).prefab;
+        GameObject prefab =  _itemFactorySettings.itemEntities.First(item => item.type == type).prefab;
         prefab.GetComponent<Item>().SetColor(color);
         return prefab;
     }
 
     public ColorVariance GetColorVariance(ItemType type, ColorType color = ColorType.Random)
     {
-        ColorVariance[] colorVariances = _factorySettings.itemEntities.FirstOrDefault(item => item.type == type).colorVariances;
+        ColorVariance[] colorVariances = _itemFactorySettings.itemEntities.FirstOrDefault(item => item.type == type).colorVariances;
         if (colorVariances == null)
         {
             Debug.LogError("Could not found colorVariances");

@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
-using Random = UnityEngine.Random;
 
 public abstract class Item : MonoBehaviour
 {
@@ -28,15 +25,14 @@ public abstract class Item : MonoBehaviour
    [HideInInspector] public int matchCount = 1;
    [HideInInspector] public int activeState;
    [HideInInspector] public UnityEvent OnMatchCountUpdated;
-   
-   private Coroutine _fallCoroutine;
+   private Coroutine _fallingCoroutine;
    private readonly Vector2Int _invalidPos = new Vector2Int(-1, -1);
    
    private void OnMouseDown()
    {
       if (!interactable)
       {
-         //Play feedback animation in coroutine
+          StartCoroutine(AnimationManager.UntouchableAnimation(transform, 0.3f));
          return;
       }
       LevelManager.Instance.TouchEvent(this);
@@ -73,7 +69,7 @@ public abstract class Item : MonoBehaviour
             var items = Board.Instance.AroundItems(pos);
             items.ForEach(item => item.UpdateMatches());
         }
-        _fallCoroutine = StartCoroutine(FallCoroutine(nextStop));
+        StartCoroutine(FallCoroutine(nextStop));
         return true;
     }
 
@@ -203,9 +199,9 @@ public abstract class Item : MonoBehaviour
     }
     private void DestroyItem()
     {
-        if (_fallCoroutine != null)
+        if (_fallingCoroutine != null)
         {
-            StopCoroutine(_fallCoroutine);
+            StopCoroutine(_fallingCoroutine);
         }
         Board.Instance.items[pos.y * Board.Instance.size.x + pos.x] = null;
         if (falling)
@@ -219,6 +215,7 @@ public abstract class Item : MonoBehaviour
         var items = Board.Instance.AroundItems(pos);
         items.ForEach(item => item.UpdateMatches());
         LevelManager.Instance.DecrementGoal((type, color));
+        ObjectPool.Instance.CreateParticle(type, transform.position, color);
         ObjectPool.Instance.DestroyItem(this);
     }
 
@@ -265,36 +262,36 @@ public abstract class Item : MonoBehaviour
         DestroyItem();
     }
 
-    protected bool IsMarked(HashSet<Item> markedItems)
+    protected bool IsMarked(ItemTracker tracker)
     {
-        if (markedItems.Contains(this))
+        if (tracker.markedItems.Contains(this))
         {
             return true;
         }
 
         return false;
     }
-    public virtual void TouchBehaviour(HashSet<Item> markedItems)
+    public virtual void TouchBehaviour(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 
-    public virtual void ExplosionBehavior(HashSet<Item> markedItems)
+    public virtual void ExplosionBehavior(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 
-    public virtual void BlastBehaviour(HashSet<Item> markedItems)
+    public virtual void BlastBehaviour(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 
-    public virtual void NearBlastBehaviour(HashSet<Item> markedItems)
+    public virtual void NearBlastBehaviour(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 }
