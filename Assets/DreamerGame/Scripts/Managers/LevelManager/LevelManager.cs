@@ -10,7 +10,7 @@ public class LevelManager : MonoBehaviour
     public static LevelManager Instance;
     [HideInInspector] public LevelData levelData;
     [HideInInspector] public LevelState state = LevelState.Loading;
-    private HashSet<Item> _markedItems = new HashSet<Item>();
+    private ItemTracker tracker = new ItemTracker();
     private int _activeCoroutines;
     private List<Goal> _goals = new List<Goal>();
     private GoalSettings _goalSettings;
@@ -22,7 +22,7 @@ public class LevelManager : MonoBehaviour
     private UnityEvent OnMove = new UnityEvent();
     private void Awake()
     {
-        if (GameManager.Instance == null)
+        if ( GameManager.Instance == null || GameManager.Instance.state != GameState.InGame)
         {
             return;
         }
@@ -62,13 +62,12 @@ public class LevelManager : MonoBehaviour
         
         
         
-        touchedItem.TouchBehaviour(_markedItems);
+        touchedItem.TouchBehaviour(tracker);
 
 
 
         
-        _activeCoroutines = 0;
-        _markedItems.Clear();
+        tracker.ResetTracker();
         Board.Instance.AfterTouchLoop();
         if (_moveCount == 0 && GameManager.Instance.state != GameState.Win)
         {

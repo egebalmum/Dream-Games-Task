@@ -7,7 +7,7 @@ public class Cube : Item
 {
     [Header("Type Specific Attributes")]
     [SerializeField] private int tntBonusRule;
-    public override void TouchBehaviour(HashSet<Item> markedItems)
+    public override void TouchBehaviour(ItemTracker tracker)
     {
         var items = Board.Instance.CheckMatches(pos.x, pos.y);
         if (items.Count < minMatchCount)
@@ -17,7 +17,7 @@ public class Cube : Item
         
         foreach (var item in items)
         {
-            item.BlastBehaviour(markedItems);
+            item.BlastBehaviour(tracker);
         }
 
         if (items.Count >= tntBonusRule)
@@ -25,14 +25,15 @@ public class Cube : Item
             Board.Instance.CreateNewItem(ItemType.TNT, pos);
         }
     }
+    
 
-    public override void BlastBehaviour(HashSet<Item> markedItems)
+    public override void BlastBehaviour(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.BlastBehaviour(markedItems);
+        base.BlastBehaviour(tracker);
         
         GetDamage();
         var aroundItems = Board.Instance.AroundItems(pos);
@@ -42,17 +43,17 @@ public class Cube : Item
             {
                 continue;
             }
-            aroundItem.NearBlastBehaviour(markedItems);
+            aroundItem.NearBlastBehaviour(tracker);
         }
     }
 
-    public override void ExplosionBehavior(HashSet<Item> markedItems)
+    public override void ExplosionBehavior(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.ExplosionBehavior(markedItems);
+        base.ExplosionBehavior(tracker);
         
         GetDamage();
     }

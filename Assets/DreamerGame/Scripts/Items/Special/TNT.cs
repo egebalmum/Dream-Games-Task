@@ -9,9 +9,9 @@ public class TNT : Item
     [SerializeField] private int diameter = 5;
 
     [SerializeField] private int comboDiameter = 7;
-    public override void TouchBehaviour(HashSet<Item> markedItems)
+    public override void TouchBehaviour(ItemTracker tracker)
     {
-        base.TouchBehaviour(markedItems);
+        base.TouchBehaviour(tracker);
         
         GetDamage();
         var aroundItems = Board.Instance.AroundItems(pos);
@@ -34,20 +34,20 @@ public class TNT : Item
                     Item item = Board.Instance.items[y * Board.Instance.size.x + x];
                     if (item != null)
                     {
-                        item.ExplosionBehavior(markedItems);
+                        item.ExplosionBehavior(tracker);
                     }
                 }
             }
         }
     }
 
-    public override void ExplosionBehavior(HashSet<Item> markedItems)
+    public override void ExplosionBehavior(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.ExplosionBehavior(markedItems);
+        base.ExplosionBehavior(tracker);
         
         GetDamage();
         for (int x = pos.x - (diameter-1)/2; x < pos.x + (diameter-1)/2 + 1; x++)
@@ -59,7 +59,7 @@ public class TNT : Item
                     Item item = Board.Instance.items[y * Board.Instance.size.x + x];
                     if (item != null)
                     {
-                        item.ExplosionBehavior(markedItems);
+                        item.ExplosionBehavior(tracker);
                     }
                 }
             }

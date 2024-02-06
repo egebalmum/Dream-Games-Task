@@ -257,36 +257,36 @@ public abstract class Item : MonoBehaviour
         DestroyItem();
     }
 
-    protected bool IsMarked(HashSet<Item> markedItems)
+    protected bool IsMarked(ItemTracker tracker)
     {
-        if (markedItems.Contains(this))
+        if (tracker.markedItems.Contains(this))
         {
             return true;
         }
 
         return false;
     }
-    public virtual void TouchBehaviour(HashSet<Item> markedItems)
+    public virtual void TouchBehaviour(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 
-    public virtual void ExplosionBehavior(HashSet<Item> markedItems)
+    public virtual void ExplosionBehavior(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 
-    public virtual void BlastBehaviour(HashSet<Item> markedItems)
+    public virtual void BlastBehaviour(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 
-    public virtual void NearBlastBehaviour(HashSet<Item> markedItems)
+    public virtual void NearBlastBehaviour(ItemTracker tracker)
     {
-        markedItems.Add(this);
+        tracker.markedItems.Add(this);
         //
     }
 }

@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class Stone : Item
 {
-    public override void ExplosionBehavior(HashSet<Item> markedItems)
+    public override void ExplosionBehavior(ItemTracker tracker)
     {
-        if (IsMarked(markedItems))
+        if (IsMarked(tracker))
         {
             return;
         }
-        base.ExplosionBehavior(markedItems);
+        base.ExplosionBehavior(tracker);
         
         GetDamage();
     }
